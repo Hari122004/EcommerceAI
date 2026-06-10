@@ -1,0 +1,240 @@
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# NumPy compatibility shim — suppresses FutureWarning for deprecated np aliases
+import warnings as _warnings
+try:
+    import numpy as _np_shim
+    with _warnings.catch_warnings():
+        _warnings.simplefilter("ignore")
+        if not hasattr(_np_shim, 'bool') or _np_shim.bool is not bool:
+            _np_shim.bool = bool
+        if not hasattr(_np_shim, 'int') or _np_shim.int is not int:
+            _np_shim.int = int
+        if not hasattr(_np_shim, 'float') or _np_shim.float is not float:
+            _np_shim.float = float
+        if not hasattr(_np_shim, 'complex') or _np_shim.complex is not complex:
+            _np_shim.complex = complex
+        if not hasattr(_np_shim, 'object') or _np_shim.object is not object:
+            _np_shim.object = object
+        if not hasattr(_np_shim, 'str') or _np_shim.str is not str:
+            _np_shim.str = str
+except Exception:
+    pass
+
+import streamlit as st
+
+st.set_page_config(
+    page_title="SmartCart AI — AI Recommendations",
+    page_icon="💡",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+from database.supabase_client import supabase
+from auth.session import init_session, is_logged_in
+
+
+def _get_query_param(name: str):
+    value = st.query_params.get(name)
+    if isinstance(value, list):
+        return value[0] if value else None
+    return value
+
+
+# ── Email confirmation / OAuth callback handler ───────────────────────────────
+_token_hash = _get_query_param('token_hash')
+_type       = _get_query_param('type')
+_code       = _get_query_param('code')
+_reset      = _get_query_param('reset')
+_state      = _get_query_param('state')
+
+if _reset == '1' or _type == 'recovery':
+    st.session_state['show_password_update'] = True
+
+if _token_hash and _type == 'recovery':
+    # Password reset flow (Implicit) — store token and show update form; do NOT verify yet
+    st.session_state['_recovery_token_hash'] = _token_hash
+    st.query_params.clear()
+
+elif _token_hash and _type:
+    try:
+        resp = supabase.auth.verify_otp({'token_hash': _token_hash, 'type': _type})
+        st.query_params.clear()
+        if resp and resp.user:
+            from auth.session import _apply_user_session
+            _apply_user_session(resp.user)
+            # User is now logged in — app.py will redirect to Home naturally
+        else:
+            st.session_state.show_email_confirmed = True
+    except Exception:
+        st.markdown("""
+<div style="background:#FEE2E2;color:#DC2626;border-left:4px solid #DC2626;
+            border-radius:8px;padding:14px 18px;margin:16px 0;font-size:14px;">
+  <strong>Confirmation link expired.</strong> Request a new one by signing in and clicking
+  "Resend Verification Email".
+</div>
+""", unsafe_allow_html=True)
+elif _code:
+    # ── Callback diagnostics ─────────────────────────────────────────────────
+    try:
+        _all_qp = dict(st.query_params)
+        # Don't print the full code (PII-ish), just first/last 6 chars
+        _code_preview = f"{_code[:6]}…{_code[-6:]}" if _code else "<none>"
+        print(f"[OAUTH] callback received: code={_code_preview} state_present={bool(_state)}")
+        print(f"[OAUTH]   query_params keys: {list(_all_qp.keys())}")
+        if _all_qp.get('error') or _all_qp.get('error_description'):
+            print(f"[OAUTH]   error             : {_all_qp.get('error')}")
+            print(f"[OAUTH]   error_description : {_all_qp.get('error_description')}")
+    except Exception as _de:
+        print(f"[OAUTH] callback diag failed: {_de}")
+    try:
+        exchange_params = {"auth_code": _code}
+        _pkce_verifier = st.session_state.get('_pkce_verifier')
+
+        if not _pkce_verifier and _state:
+            from auth.session import _get_pkce_global
+            _pkce_verifier = _get_pkce_global(_state)
+
+        # Supabase OAuth URL has no state param, so the state-keyed cache above
+        # is always empty.  Fall back to reading the verifier directly from the
+        # supabase singleton's in-process SyncMemoryStorage (same Python process).
+        if not _pkce_verifier:
+            try:
+                _pkce_verifier = supabase.auth._storage.get_item(
+                    f"{supabase.auth._storage_key}-code-verifier"
+                )
+            except Exception:
+                pass
+
+        # Scan storage dict in case the key format differs across SDK versions
+        if not _pkce_verifier:
+            try:
+                for _sk, _sv in supabase.auth._storage.storage.items():
+                    if "code-verifier" in _sk:
+                        _pkce_verifier = _sv
+                        break
+            except Exception:
+                pass
+
+        # Last resort: the fixed "latest" slot written by login_with_google()
+        if not _pkce_verifier:
+            from auth.session import _get_pkce_global
+            _pkce_verifier = _get_pkce_global("__latest__")
+
+        if _pkce_verifier:
+            exchange_params["code_verifier"] = _pkce_verifier
+
+        resp = supabase.auth.exchange_code_for_session(exchange_params)
+        st.query_params.clear()
+        if resp and resp.user:
+            from auth.session import _apply_user_session
+            _apply_user_session(resp.user)
+            st.session_state.pop('_google_oauth_url', None)
+            st.session_state.pop('_pkce_verifier', None)
+            # Create profile for Google users if missing
+            try:
+                existing = supabase.table('profiles').select(
+                    'id').eq('id', resp.user.id).execute()
+                if not existing.data:
+                    meta = resp.user.user_metadata or {}
+                    full_name = (
+                        meta.get('full_name') or
+                        meta.get('name') or
+                        resp.user.email.split('@')[0]
+                    )
+                    username = full_name.lower().replace(
+                        ' ', '_')
+                    supabase.table('profiles').insert({
+                        'id': resp.user.id,
+                        'full_name': full_name,
+                        'username': username,
+                        'email': resp.user.email,
+                        'preferred_categories': [],
+                        'avatar_color': '#6C63FF'
+                    }).execute()
+                    supabase.table(
+                        'user_preferences').insert({
+                        'user_id': resp.user.id,
+                        'preferred_categories': [],
+                        'preferred_engine': 'hybrid'
+                    }).execute()
+            except Exception as profile_err:
+                print(f"Google profile creation: {profile_err}")
+        else:
+            error_detail = None
+            try:
+                error_detail = getattr(resp, 'error', None) or getattr(resp, 'status_code', None)
+            except Exception:
+                error_detail = None
+            print(f"[OAUTH] exchange_code_for_session returned no user: resp={resp}, detail={error_detail}")
+            st.session_state.oauth_error = (
+                f"Google sign-in failed: exchange_code_for_session returned no user."
+                f" {error_detail if error_detail else ''}"
+            )
+            st.session_state.pop('_google_oauth_url', None)
+            st.session_state.pop('_pkce_verifier', None)
+    except Exception as e:
+        import traceback as _tb
+        print(f"[OAUTH] exchange_code_for_session FAILED: {type(e).__name__}: {e}")
+        print(_tb.format_exc())
+        st.query_params.clear()
+        st.session_state.pop('_google_oauth_url', None)
+        st.session_state.pop('_pkce_verifier', None)
+        st.session_state.oauth_error = f"{type(e).__name__}: {e}"
+
+# ── Session init ──────────────────────────────────────────────────────────────
+init_session()
+
+# ── Show OAuth error if present ───────────────────────────────────────────────
+if st.session_state.get('oauth_error'):
+    _err_msg = st.session_state.pop('oauth_error')
+    _is_403 = "403" in _err_msg or "access_denied" in _err_msg.lower()
+    
+    st.markdown(f"""
+<div style="background:#FEE2E2;color:#DC2626;border-left:4px solid #DC2626;
+            border-radius:8px;padding:14px 18px;margin:16px 0;font-size:14px;">
+  <strong>Google Sign-In failed.</strong> {_err_msg}<br>
+  <span style="font-size:12px;margin-top:8px;display:block;line-height:1.6">
+    {"<strong>Possible Fix for 403 error:</strong><br>1. Ensure your Google Cloud Project is set to 'Production' (not Testing) OR add your email as a 'Test User' in Google Console.<br>2. Check that 'rjzzaotivapqjkzcjclw.supabase.co' is authorized in Google Console.<br>3. Verify that your redirect URL is allowed in the Supabase Dashboard." if _is_403 else "Please try again or use email/password login. If this persists, ensure your Supabase configuration is correct."}
+  </span>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Sidebar collapse state (used by CSS-based toggle in sidebar.py) ───────────
+if 'sidebar_collapsed' not in st.session_state:
+    st.session_state['sidebar_collapsed'] = False
+
+# ── Auth routing ──────────────────────────────────────────────────────────────
+if not is_logged_in():
+    if st.session_state.get('show_signup', False):
+        from auth.signup import render_signup
+        render_signup()
+    else:
+        from auth.login import render_login
+        render_login()
+    st.stop()
+
+# ── Onboarding check ──────────────────────────────────────────────────────────
+from auth.onboarding import needs_onboarding, show_onboarding
+if needs_onboarding():
+    show_onboarding()
+    st.stop()
+
+# ── Welcome notification on first login ───────────────────────────────────────
+from utils.notifications import add_notification
+if not st.session_state.get('welcome_sent'):
+    first_name = (st.session_state.get('full_name') or 'there').split()[0]
+    add_notification('success', f'Welcome back, {first_name}!',
+                     'Your AI-powered recommendations are ready.')
+    st.session_state['welcome_sent'] = True
+
+# ── Password Reset Intercept (If logged in via PKCE code but needs new pw) ────
+if st.session_state.get('show_password_update'):
+    from auth.login import render_login
+    render_login()
+    st.stop()
+
+# ── Redirect authenticated users to Home ─────────────────────────────────────
+st.switch_page("pages/01_Home.py")

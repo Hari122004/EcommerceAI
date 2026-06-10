@@ -1,0 +1,963 @@
+"""
+utils/model_loader.py
+SmartCart AI — Central Model Loading Hub
+All saved_models are loaded ONCE via st.cache_resource and shared.
+Sourcesys Technologies Internship Project
+"""
+
+# NumPy compatibility shim for pkl files trained on numpy 1.x
+# Suppresses FutureWarning when assigning deprecated np.bool/int/float/etc.
+import warnings as _warnings
+try:
+    import numpy as _np_shim
+    with _warnings.catch_warnings():
+        _warnings.simplefilter("ignore")
+        # These aliases were removed in numpy 2.0 but some older pickled models need them
+        if not hasattr(_np_shim, 'bool') or _np_shim.bool is not bool:
+            _np_shim.bool = bool
+        if not hasattr(_np_shim, 'int') or _np_shim.int is not int:
+            _np_shim.int = int
+        if not hasattr(_np_shim, 'float') or _np_shim.float is not float:
+            _np_shim.float = float
+        if not hasattr(_np_shim, 'complex') or _np_shim.complex is not complex:
+            _np_shim.complex = complex
+        if not hasattr(_np_shim, 'object') or _np_shim.object is not object:
+            _np_shim.object = object
+        if not hasattr(_np_shim, 'str') or _np_shim.str is not str:
+            _np_shim.str = str
+except Exception:
+    pass
+
+from datetime import datetime
+
+import os
+import sys
+import urllib.request
+import joblib
+import pandas as pd
+import streamlit as st
+from utils.helpers import normalize_categories
+
+
+def _log(msg: str):
+    """Write to stderr with flush — visible in HF Space Docker logs regardless of buffering."""
+    sys.stderr.write(f"[SmartCart AI] {msg}\n")
+    sys.stderr.flush()
+
+# ── Absolute path to saved_models/ ────────────────────────────────────────────
+_BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_DIR  = os.path.join(_BASE_DIR, "saved_models")
+
+# ── HuggingFace Hub auto-download config ──────────────────────────────────────
+HF_REPO = "Hemanth1429/intellirec-recommendation-model"
+HF_BASE = f"https://huggingface.co/{HF_REPO}/resolve/main"
+
+# Bump this string whenever new model files are uploaded to HuggingFace.
+# The deployed app compares this against the saved .model_version file —
+# a mismatch means new files are available and triggers a full re-download.
+MODEL_VERSION = "v6-no-tfidf-20260507"
+
+# Core files required for MODELS_READY = True.
+# products_df is shipped as parquet (version-portable) — joblib pickle of
+# pandas StringDtype broke on Streamlit Cloud's pandas 2.2.3 (
+# "StringDtype.__init__() takes from 1 to 2 positional arguments but 3 were given"),
+# silently dropping all recommendations to the 42-item sample fallback.
+_REQUIRED = [
+    "svd_model.pkl",
+    "tfidf_vectorizer.pkl",
+    "product_indices.pkl",
+    "products_df.parquet",
+    "product_sentiments.pkl",
+    "model_metrics.pkl",
+]
+
+# Downloaded if possible but NOT required for MODELS_READY.
+# products_df.pkl: legacy fallback if parquet absent (older HF revisions).
+_OPTIONAL = ["products_df.pkl"]
+
+# Files that should be cleaned up on version bump but NEVER auto-downloaded
+# (they are too large for Streamlit Cloud's per-app memory limit).
+# tfidf_matrix.pkl is 1.7 GB compressed and crashes the worker when loaded into
+# pandas. get_tfidf() handles its absence gracefully — content-based recs fall
+# through to popularity-by-category from products_df.
+_LEGACY_CLEANUP = ["tfidf_matrix.pkl"]
+
+# Full list — used only by the version-bump cleanup loop (line 116).
+_ALL_FILES = _REQUIRED + _OPTIONAL + _LEGACY_CLEANUP
+
+
+def ensure_models_exist():
+    """
+    Check for missing model files and auto-download from HuggingFace Hub.
+    Uses MODEL_VERSION constant (embedded in code) to detect when new model
+    files have been uploaded — guarantees the deployed app re-downloads fresh
+    files whenever a new version is deployed via GitHub.
+
+    IMPORTANT: Must NOT call Streamlit UI functions — runs at import time before
+    any Streamlit page context exists. Uses print() for logging instead.
+    """
+    os.makedirs(MODEL_DIR, exist_ok=True)
+
+    def _is_valid_pkl(path: str) -> bool:
+        # LFS pointer files are ~130 bytes. Use 200 as threshold to safely
+        # exclude pointers while accepting even small pkl files (e.g. metrics).
+        try:
+            return os.path.exists(path) and os.path.getsize(path) > 200
+        except Exception:
+            return False
+
+    # -- Version freshness check (no network call needed) --------------------
+    # MODEL_VERSION is bumped in code whenever new HF files are uploaded.
+    # When Streamlit Cloud pulls the new code from GitHub, it sees the new
+    # version string, deletes stale cached pkl files, and re-downloads.
+    _version_file = os.path.join(MODEL_DIR, ".model_version")
+    _local_version = ""
+    try:
+        if os.path.exists(_version_file):
+            with open(_version_file) as _f:
+                _local_version = _f.read().strip()
+    except Exception:
+        pass
+
+    if _local_version != MODEL_VERSION:
+        _log(f"Model version changed ({_local_version!r} -> {MODEL_VERSION!r}). Clearing cached files...")
+        for _fn in _ALL_FILES:
+            _old = os.path.join(MODEL_DIR, _fn)
+            try:
+                if os.path.exists(_old):
+                    os.remove(_old)
+                    _log(f"Removed stale: {_fn}")
+            except Exception:
+                pass
+
+    _force = (_local_version != MODEL_VERSION)
+
+    missing_core = [f for f in _REQUIRED if not _is_valid_pkl(os.path.join(MODEL_DIR, f))]
+
+    if not missing_core and not _force:
+        _log("All core model files present — skipping download")
+        return True
+
+    if _force:
+        missing_core = list(_REQUIRED)
+
+    to_download = list(missing_core)
+    _log(f"Downloading {len(to_download)} core file(s): {to_download}")
+    _log(f"MODEL_DIR = {MODEL_DIR}  (exists={os.path.exists(MODEL_DIR)})")
+
+    def _hf_download(filename, force):
+        dest = os.path.join(MODEL_DIR, filename)
+        try:
+            from huggingface_hub import hf_hub_download
+            _log(f"hf_hub_download: {filename} ...")
+            hf_hub_download(
+                repo_id=HF_REPO,
+                filename=filename,
+                local_dir=MODEL_DIR,
+                local_dir_use_symlinks=False,
+                force_download=force,
+            )
+            sz = os.path.getsize(dest) // 1024 if os.path.exists(dest) else 0
+            _log(f"  OK: {filename} ({sz} KB)")
+        except ImportError:
+            _download_direct(filename, dest)
+        except Exception as e:
+            _log(f"  hf_hub_download failed for {filename}: {e} — trying direct")
+            _download_direct(filename, dest)
+
+    # Download core files (required for MODELS_READY)
+    for i, fn in enumerate(to_download):
+        _log(f"Core file ({i+1}/{len(to_download)}): {fn}")
+        _hf_download(fn, _force)
+
+    # Validate core files
+    still_missing = [f for f in _REQUIRED if not _is_valid_pkl(os.path.join(MODEL_DIR, f))]
+    if still_missing:
+        _log(f"WARNING: core files still missing/invalid: {still_missing}")
+        for f in _REQUIRED:
+            p = os.path.join(MODEL_DIR, f)
+            sz = os.path.getsize(p) if os.path.exists(p) else -1
+            _log(f"  {f}: {sz} bytes")
+        return False
+
+    # Save version (core files are good)
+    try:
+        with open(_version_file, "w") as _f:
+            _f.write(MODEL_VERSION)
+        _log(f"Version file written: {MODEL_VERSION}")
+    except Exception as ve:
+        _log(f"Could not write version file: {ve}")
+
+    # Opportunistically download optional heavy files (tfidf_matrix.pkl)
+    # Failure here does NOT affect MODELS_READY — these degrade gracefully.
+    for fn in _OPTIONAL:
+        if _force or not _is_valid_pkl(os.path.join(MODEL_DIR, fn)):
+            _log(f"Optional file download attempt: {fn}")
+            try:
+                _hf_download(fn, _force)
+                if _is_valid_pkl(os.path.join(MODEL_DIR, fn)):
+                    _log(f"Optional file ready: {fn}")
+                else:
+                    _log(f"Optional file unavailable (will run without it): {fn}")
+            except Exception as opt_e:
+                _log(f"Optional file download failed (non-fatal): {fn}: {opt_e}")
+
+    _log("Core model files ready!")
+    return True
+
+
+def _download_direct(filename: str, dest: str):
+    """Direct HTTP download with LFS media-type header as fallback."""
+    url = f"{HF_BASE}/{filename}?download=true"
+    _log(f"Direct download: {url}")
+    try:
+        req = urllib.request.Request(url, headers={
+            "Accept": "application/octet-stream",
+            "User-Agent": "SmartCart AI/1.0",
+        })
+        with urllib.request.urlopen(req) as resp, open(dest, 'wb') as out:
+            while True:
+                chunk = resp.read(1024 * 1024)
+                if not chunk:
+                    break
+                out.write(chunk)
+        size_kb = os.path.getsize(dest) // 1024
+        _log(f"Direct download OK: {filename} ({size_kb} KB)")
+    except Exception as e:
+        _log(f"Direct download also failed for {filename}: {e}")
+
+
+# Attempt auto-download before checking readiness.
+# Wrapped in try/except so that ANY failure still allows MODELS_READY to be set.
+try:
+    ensure_models_exist()
+except Exception as _ensure_exc:
+    _log(f"ensure_models_exist() raised: {_ensure_exc}")
+
+MODELS_READY: bool = all(
+    os.path.exists(os.path.join(MODEL_DIR, f)) and
+    os.path.getsize(os.path.join(MODEL_DIR, f)) > 200
+    for f in _REQUIRED
+)
+_log(f"MODELS_READY = {MODELS_READY}")
+for _f in _REQUIRED:
+    _p = os.path.join(MODEL_DIR, _f)
+    _sz = os.path.getsize(_p) if os.path.exists(_p) else -1
+    _log(f"  {_f}: {_sz} bytes")
+
+
+def _pkl(filename: str):
+    """Load a joblib/pickle file from MODEL_DIR."""
+    # NOTE: mmap_mode='r' is NOT used here because all pkl files are compressed
+    # (joblib default). mmap_mode is only compatible with uncompressed files.
+    return joblib.load(os.path.join(MODEL_DIR, filename))
+
+
+# ── Cached loaders ─────────────────────────────────────────────────────────────
+
+@st.cache_resource(show_spinner=False)
+def get_svd():
+    """Return the trained Surprise SVD model (loaded once)."""
+    if not MODELS_READY:
+        _log("get_svd(): MODELS_READY=False — skipping load")
+        return None
+    filepath = os.path.join(MODEL_DIR, "svd_model.pkl")
+    try:
+        from utils.diagnostics import diagnose_artifact
+        diagnose_artifact("svd_model", filepath, do_load=False)
+    except Exception:
+        pass
+    try:
+        # joblib without mmap_mode (compressed pkl files are incompatible with mmap)
+        model = joblib.load(filepath)
+        _log(f"SVD model loaded OK: {type(model).__name__}")
+        return model
+    except Exception as e1:
+        _log(f"SVD joblib load failed: {e1}, trying pickle...")
+    try:
+        import pickle
+        with open(filepath, 'rb') as f:
+            model = pickle.load(f)
+        _log(f"SVD model loaded via pickle: {type(model).__name__}")
+        return model
+    except Exception as e2:
+        _log(f"SVD pickle load also failed: {e2}")
+        return None
+
+
+@st.cache_resource(show_spinner=False)
+def get_tfidf():
+    """Return (tfidf_vectorizer, tfidf_matrix, product_indices) tuple.
+    tfidf_matrix.pkl is optional — returns (None, None, None) gracefully
+    when the file is absent or causes OOM on memory-constrained platforms."""
+    if not MODELS_READY:
+        _log("get_tfidf(): MODELS_READY=False — skipping load")
+        return None, None, None
+    matrix_path = os.path.join(MODEL_DIR, "tfidf_matrix.pkl")
+    try:
+        from utils.diagnostics import diagnose_artifact
+        diagnose_artifact("tfidf_vectorizer", os.path.join(MODEL_DIR, "tfidf_vectorizer.pkl"), do_load=False)
+        diagnose_artifact("product_indices",  os.path.join(MODEL_DIR, "product_indices.pkl"),  do_load=False)
+        diagnose_artifact("tfidf_matrix",     matrix_path, do_load=False)
+    except Exception:
+        pass
+    if not os.path.exists(matrix_path) or os.path.getsize(matrix_path) <= 200:
+        _log("tfidf_matrix.pkl not available — similarity search disabled (graceful)")
+        return None, None, None
+    try:
+        vec     = _pkl("tfidf_vectorizer.pkl")
+        matrix  = _pkl("tfidf_matrix.pkl")
+        indices = _pkl("product_indices.pkl")
+        _log(f"TF-IDF loaded OK — matrix shape: {matrix.shape}")
+        return vec, matrix, indices
+    except (MemoryError, Exception) as e:
+        _log(f"TF-IDF load error (possibly OOM on low-RAM platform): {e}")
+        return None, None, None
+
+
+@st.cache_data(show_spinner=False)
+def get_products_df() -> pd.DataFrame:
+    """Return the full product metadata DataFrame with all columns cast to safe types.
+
+    Prefers products_df.parquet (version-portable — survives pandas/pyarrow
+    upgrades) and falls back to products_df.pkl for legacy HF revisions.
+    """
+    if not MODELS_READY:
+        _log("get_products_df(): MODELS_READY=False — returning empty DataFrame")
+        return pd.DataFrame()
+
+    parquet_path = os.path.join(MODEL_DIR, "products_df.parquet")
+    pkl_path     = os.path.join(MODEL_DIR, "products_df.pkl")
+
+    df = None
+
+    # Preferred: parquet (the fix for the StringDtype unpickle bug)
+    if os.path.exists(parquet_path) and os.path.getsize(parquet_path) > 200:
+        try:
+            from utils.diagnostics import diagnose_artifact
+            diagnose_artifact("products_df.parquet", parquet_path, do_load=False)
+        except Exception:
+            pass
+        try:
+            df = pd.read_parquet(parquet_path, engine="pyarrow")
+            _log(f"products_df parquet loaded OK — {len(df):,} rows")
+        except Exception as e_pq:
+            _log(f"products_df parquet load failed: {e_pq}, trying pkl...")
+
+    # Legacy fallback: pkl
+    if df is None or not isinstance(df, pd.DataFrame):
+        if os.path.exists(pkl_path):
+            try:
+                from utils.diagnostics import diagnose_artifact
+                diagnose_artifact("products_df.pkl", pkl_path, do_load=False)
+            except Exception:
+                pass
+            try:
+                df = joblib.load(pkl_path)
+            except Exception as e1:
+                _log(f"products_df joblib load failed: {e1}, trying pickle...")
+            if df is None or not isinstance(df, pd.DataFrame):
+                try:
+                    import pickle
+                    with open(pkl_path, 'rb') as f:
+                        df = pickle.load(f)
+                except Exception as e2:
+                    _log(f"products_df pickle load also failed: {e2}")
+
+    if df is None or not isinstance(df, pd.DataFrame):
+        _log("products_df: ALL load attempts failed — returning empty DataFrame")
+        return pd.DataFrame()
+
+    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+        return pd.DataFrame()
+
+    # Drop heavy text columns that are only needed during training.
+    # tfidf_matrix.pkl is already precomputed — features_str/description/features
+    # are not used at inference time. Dropping them cuts RAM from ~8 GB to ~400 MB,
+    # which is essential for Streamlit Cloud's 1 GB memory limit.
+    _heavy_cols = [c for c in ("features_str", "description", "features") if c in df.columns]
+    if _heavy_cols:
+        df = df.drop(columns=_heavy_cols)
+
+    # ── Normalise all column dtypes to plain Python types ────────────────────
+    # Covers both legacy 'object' dtype AND pandas nullable StringDtype / BooleanDtype
+    try:
+        for col in df.columns:
+            col_dtype = str(df[col].dtype)
+            if col_dtype in ('object', 'string', 'str') or 'String' in col_dtype:
+                # Cast nullable StringDtype → regular str; NA → 'nan' then we strip below
+                df[col] = df[col].astype(object).fillna('').astype(str)
+                # Replace the literal 'nan' string introduced by astype(str) on NA
+                df[col] = df[col].replace({'nan': '', '<NA>': ''})
+            elif 'boolean' in col_dtype or 'Boolean' in col_dtype:
+                df[col] = df[col].astype(object).fillna(False).astype(bool)
+    except Exception as _cast_err:
+        _log(f"dtype normalisation warning: {_cast_err}")
+
+    _log(f"products_df loaded OK — {len(df):,} rows, columns: {list(df.columns)}")
+    return df
+
+
+@st.cache_resource(show_spinner=False)
+def get_sentiments() -> dict:
+    """Return {product_id: {compound, label, score, review_count}} dict."""
+    if not MODELS_READY:
+        _log("get_sentiments(): MODELS_READY=False — returning empty dict")
+        return {}
+    try:
+        from utils.diagnostics import diagnose_artifact
+        diagnose_artifact("product_sentiments", os.path.join(MODEL_DIR, "product_sentiments.pkl"), do_load=False)
+    except Exception:
+        pass
+    try:
+        data = _pkl("product_sentiments.pkl")
+        _log(f"Sentiments loaded OK — {len(data):,} entries")
+        return data
+    except Exception as e:
+        _log(f"Sentiments load error: {e}")
+        return {}
+
+
+def get_metrics() -> tuple:
+    """Return (metrics_dict, is_real). Always reads fresh from disk — file is 472 bytes, no caching needed.
+    Caching this caused stale dummy data to persist after retraining."""
+    path = os.path.join(MODEL_DIR, "model_metrics.pkl")
+    if os.path.exists(path) and os.path.getsize(path) > 200:
+        try:
+            data = joblib.load(path)
+            if isinstance(data, dict) and data:
+                return data, True
+        except Exception as e:
+            _log(f"get_metrics load error: {e}")
+    # Fallback dummy
+    return {
+        "Collaborative (SVD)": {
+            "RMSE": 0.89, "MAE": 0.68,
+            "Precision@10": 0.65, "Recall@10": 0.55,
+            "F1": 0.59, "Training Time": 12.5
+        },
+        "Content-Based (TF-IDF)": {
+            "RMSE": 0.95, "MAE": 0.73,
+            "Precision@10": 0.60, "Recall@10": 0.50,
+            "F1": 0.55, "Training Time": 4.2
+        },
+        "Hybrid Sentiment-Aware": {
+            "RMSE": 0.81, "MAE": 0.61,
+            "Precision@10": 0.82, "Recall@10": 0.74,
+            "F1": 0.78, "Training Time": 18.0
+        },
+    }, False
+
+
+# ── Recommendation helpers ─────────────────────────────────────────────────────
+
+def _parse_price(raw) -> float:
+    """Safely convert any price value to a float, handling NaN/NA/None/empty."""
+    try:
+        if raw is None:
+            return 0.0
+        # Handle pandas NA and numpy nan BEFORE converting to string
+        try:
+            import math
+            if isinstance(raw, float) and math.isnan(raw):
+                return 0.0
+        except Exception:
+            pass
+        # Handle pandas NA type
+        raw_str = str(raw)
+        if raw_str in ('', 'nan', 'NaN', '<NA>', 'None', 'NA'):
+            return 0.0
+        cleaned = raw_str.replace("$", "").replace(",", "").strip()
+        # Handle 'from X.XX' patterns found in Amazon data
+        if cleaned.lower().startswith("from"):
+            cleaned = cleaned[4:].strip()
+        result = float(cleaned)
+        # Guard against float('nan') result
+        import math
+        return result if not math.isnan(result) else 0.0
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def _row_to_card(row: pd.Series, sentiment: dict) -> dict:
+    """Convert a products_df row → UI card dict."""
+    return {
+        "product_id":   str(row["product_id"]),
+        "asin":         str(row["product_id"]),   # alias for legacy UI
+        "title":        str(row.get("title") or "Unknown Product"),
+        "category":     str(row.get("category") or "Electronics"),
+        "price":        _parse_price(row.get("price")),
+        "rating":       float(row.get("average_rating") or 0),
+        "review_count": int(row.get("rating_number") or 0),
+        "store":        str(row.get("store") or ""),
+        "sentiment_label": sentiment.get("label", "Mixed"),
+        "sentiment_score": sentiment.get("score", 0.5),
+        "sentiment_compound": sentiment.get("compound", 0.0),
+        "is_trending":  False,
+        "is_bestseller": False,
+    }
+
+
+def get_similar_products(product_id: str, n: int = 12) -> list:
+    """
+    Return n products most similar to the given product_id using
+    TF-IDF cosine similarity over the saved model artifacts.
+    Falls back to curated sample products when models are unavailable.
+    """
+    from sklearn.metrics.pairwise import cosine_similarity as cos_sim
+
+    _, tfidf_matrix, product_indices = get_tfidf()
+    products   = get_products_df()
+    sentiments = get_sentiments()
+
+    if tfidf_matrix is None or products.empty or product_indices is None:
+        return _load_fallback_recs(n)
+
+    # Resolve the product's row index in the matrix
+    if product_id not in product_indices.index:
+        return _load_fallback_recs(n)
+
+    idx = product_indices[product_id]
+    # Handle duplicate product_ids → take the first
+    if hasattr(idx, '__len__'):
+        idx = idx.iloc[0]
+
+    product_vec = tfidf_matrix[idx]
+    sim_scores  = cos_sim(product_vec, tfidf_matrix).flatten()
+
+    # Determine source product's category before fetching candidates
+    _src_rows = products[products['product_id'] == product_id]
+    source_category = str(_src_rows.iloc[0].get("category", "")).strip().lower() if not _src_rows.empty else ""
+
+    # Fetch a larger pool so same-category products have a chance to surface
+    top_indices = sim_scores.argsort()[::-1][1: n * 8 + 1]
+
+    same_cat, other_cat = [], []
+    for i in top_indices:
+        if i >= len(products):
+            continue
+        row  = products.iloc[i]
+        pid  = str(row["product_id"])
+        card = _row_to_card(row, sentiments.get(pid, {}))
+        card["match_score"]      = min(99, max(1, int(sim_scores[i] * 100)))
+        card["predicted_rating"] = float(row.get("average_rating") or 0)
+        card["explanation"]      = "Similar to the product you selected"
+        card["engine"]           = "Content-Based (Similar)"
+        if source_category and card.get("category", "").strip().lower() == source_category:
+            same_cat.append(card)
+        else:
+            other_cat.append(card)
+
+    # Hard-filter: prefer same-category products; only fall back to other categories
+    # when there are not enough same-category results
+    if len(same_cat) >= n:
+        return same_cat[:n]
+    if same_cat:
+        return same_cat  # return all available same-category results
+    # No same-category matches found — fall back gracefully
+    return other_cat[:n]
+
+
+def _load_fallback_recs(n: int = 12, categories: list = None) -> list:
+    """
+    Load curated sample products from assets/sample_products.json.
+    Used as fallback when ML models are unavailable or still downloading.
+    """
+    import json
+    import traceback as _tb
+    # Diagnostic: who triggered the 42-product fallback? Capture caller in logs.
+    try:
+        _stack = "".join(_tb.format_stack(limit=4)[:-1])
+        _log(f"⚠️ _load_fallback_recs(n={n}) invoked — silent fallback to 42-item sample.\n{_stack}")
+    except Exception:
+        pass
+    try:
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        path = os.path.join(base, "assets", "sample_products.json")
+        with open(path, "r", encoding="utf-8") as f:
+            items = json.load(f)
+        if categories:
+            norm_cats = normalize_categories(categories)
+            filtered = [p for p in items if p.get("category") in norm_cats]
+            items = filtered if filtered else items
+        result = []
+        for p in items[:n]:
+            card = dict(p)
+            card.setdefault("product_id", card.get("asin", ""))
+            card.setdefault("asin", card.get("product_id", ""))
+            card.setdefault("match_score", 62)
+            card.setdefault("predicted_rating", card.get("rating", 3.5))
+            card.setdefault("explanation", "Curated pick while AI engine warms up")
+            card.setdefault("engine", "Curated")
+            card.setdefault("sentiment_label", card.get("sentiment_label", "Mixed"))
+            card.setdefault("sentiment_score", card.get("sentiment_score", 0.5))
+            card.setdefault("sentiment_compound", 0.0)
+            card.setdefault("store", "")
+            card.setdefault("is_trending", False)
+            card.setdefault("is_bestseller", False)
+            result.append(card)
+        return result
+    except Exception as e:
+        _log(f"Fallback sample load failed: {e}")
+        return []
+
+
+def get_cf_recommendations(user_id: str, n: int = 12,
+                            categories: list = None,
+                            sample_size: int = 5000) -> list:
+    """
+    SVD-based top-n recommendations for user_id.
+    Samples `sample_size` products to keep latency reasonable.
+    Falls back to curated sample products when models are unavailable.
+    """
+    svd        = get_svd()
+    products   = get_products_df()
+    sentiments = get_sentiments()
+
+    if products.empty:
+        return _load_fallback_recs(n, categories)
+
+    # SVD model requires torch which isn't installed on Streamlit Cloud.
+    # When it's unavailable, fall back to top-rated products from real catalog
+    # (NOT the 42-item sample) so users still see 1.6M product recommendations.
+    if svd is None:
+        _log("SVD unavailable — using CB fallback with real product catalog")
+        return get_cb_recommendations(categories=categories, n=n)
+
+    # Filter BEFORE copying — same OOM avoidance as get_cb_recommendations
+    if categories:
+        categories = normalize_categories(categories)
+        df = products[products["category"].isin(categories)]
+    else:
+        df = products
+    if df.empty:
+        return []
+
+    sample = df.sample(min(sample_size, len(df)), random_state=42)
+
+    preds = []
+    for _, row in sample.iterrows():
+        pid = row["product_id"]
+        try:
+            est = svd.predict(str(user_id), str(pid)).est
+        except Exception:
+            est = 3.0
+        preds.append((pid, est))
+
+    preds.sort(key=lambda x: x[1], reverse=True)
+
+    results = []
+    for pid, est in preds[:n]:
+        rows = products[products["product_id"] == pid]
+        if rows.empty:
+            continue
+        card = _row_to_card(rows.iloc[0], sentiments.get(pid, {}))
+        card["match_score"]      = min(99, int(round(est / 5.0 * 100)))
+        card["predicted_rating"] = round(est, 2)
+        card["explanation"]      = "Because users like you loved this"
+        card["engine"]           = "Collaborative Filtering"
+        results.append(card)
+
+    return results
+
+
+def get_cb_recommendations(categories: list = None, n: int = 12) -> list:
+    """
+    Content-based: top-rated products from given categories.
+    Uses products_df directly (no cosine similarity needed for category recs).
+    Falls back to curated sample products when models are unavailable.
+    """
+    products   = get_products_df()
+    sentiments = get_sentiments()
+
+    if products.empty:
+        return _load_fallback_recs(n, categories)
+
+    # Filter BEFORE copying — copying 1.6 M rows first OOMs Streamlit Cloud.
+    if categories:
+        categories = normalize_categories(categories)
+        df = products[products["category"].isin(categories)]
+    else:
+        df = products
+    if df.empty:
+        return []
+
+    # Now safe to copy the filtered subset (typically <500 k rows)
+    df = df.copy()
+    df["average_rating"] = pd.to_numeric(df["average_rating"], errors="coerce").fillna(0)
+
+    # Require at least some reviews; sort by rating descending
+    df = df[df["rating_number"].fillna(0).astype(float) > 0]
+    df = df.nlargest(n * 3, "average_rating")
+
+    results = []
+    for _, row in df.head(n).iterrows():
+        pid  = row["product_id"]
+        card = _row_to_card(row, sentiments.get(pid, {}))
+        card["match_score"]      = min(99, int(round(float(row["average_rating"]) / 5.0 * 100)))
+        card["predicted_rating"] = float(row["average_rating"])
+        cat_label = (categories or ["Electronics"])[0]
+        card["explanation"]      = f"Matches your {cat_label} interest"
+        card["engine"]           = "Content-Based"
+        results.append(card)
+
+    return results
+
+
+def get_cb_tfidf_recommendations(_user_id: str, n: int = 12,
+                                  categories: list = None) -> list:
+    """
+    Content-based recommendations using TF-IDF cosine similarity.
+    Builds a user profile from liked/saved product vectors, then finds
+    the most similar unseen products. Falls back to get_cb_recommendations()
+    for new users with no interaction history.
+    """
+    from sklearn.metrics.pairwise import cosine_similarity as cos_sim
+    import numpy as np
+
+    _, tfidf_matrix, product_indices = get_tfidf()
+    products   = get_products_df()
+    sentiments = get_sentiments()
+
+    if tfidf_matrix is None or products.empty:
+        return get_cb_recommendations(categories=categories, n=n)
+
+    # Build interaction history from session state
+    try:
+        import streamlit as st
+        liked_pids   = set(st.session_state.get("liked_pids", set()))
+        wishlist_ids = set(st.session_state.get("wishlist_ids", set()))
+        seen_pids    = liked_pids | wishlist_ids
+    except Exception:
+        seen_pids = set()
+
+    if not seen_pids:
+        # No history — fall back to popularity-based CB
+        return get_cb_recommendations(categories=categories, n=n)
+
+    # Map product IDs to matrix row indices
+    liked_indices = []
+    for pid in seen_pids:
+        if pid in product_indices:
+            liked_indices.append(product_indices[pid])
+
+    if not liked_indices:
+        return get_cb_recommendations(categories=categories, n=n)
+
+    # Mean TF-IDF profile of liked products
+    user_profile = tfidf_matrix[liked_indices].mean(axis=0)
+
+    # Cosine similarity against all products
+    scores = cos_sim(user_profile, tfidf_matrix).flatten()
+
+    # Zero out already-seen products
+    for idx in liked_indices:
+        if idx < len(scores):
+            scores[idx] = 0.0
+
+    # Optional category filter
+    if categories:
+        categories = normalize_categories(categories)
+        cat_mask = products["category"].isin(categories).values
+        scores[~cat_mask] = 0.0
+
+    top_indices = np.argsort(scores)[::-1][:n * 2]
+
+    results = []
+    for idx in top_indices:
+        if len(results) >= n:
+            break
+        if scores[idx] <= 0:
+            break
+        row = products.iloc[idx]
+        pid = row["product_id"]
+        card = _row_to_card(row, sentiments.get(pid, {}))
+        card["match_score"]      = min(99, int(round(float(scores[idx]) * 100)))
+        card["predicted_rating"] = float(row.get("average_rating") or 0)
+        card["explanation"]      = "Similar to products you liked"
+        card["engine"]           = "Content-Based"
+        results.append(card)
+
+    if not results:
+        return get_cb_recommendations(categories=categories, n=n)
+
+    return results
+
+
+def _time_context_boost(category: str) -> int:
+    """Return a small score nudge (+3) when category matches time-of-day affinity."""
+    try:
+        _AFFINITY = {
+            "morning":    ["Electronics", "Books", "Sports"],
+            "afternoon":  ["Electronics", "Home & Kitchen", "Clothing & Shoes"],
+            "evening":    ["Home & Kitchen", "Beauty & Personal Care", "Books"],
+            "night":      ["Beauty & Personal Care", "Home & Kitchen"],
+            "late_night": ["Electronics", "Books"],
+        }
+        h = datetime.now().hour
+        if h < 6:    ctx = "late_night"
+        elif h < 12: ctx = "morning"
+        elif h < 17: ctx = "afternoon"
+        elif h < 21: ctx = "evening"
+        else:        ctx = "night"
+        return 3 if category in _AFFINITY.get(ctx, []) else 0
+    except Exception:
+        return 0
+
+
+def get_hybrid_recommendations(user_id: str, n: int = 12,
+                                categories: list = None,
+                                diversity: float = 0.3) -> list:
+    """
+    Hybrid: blend CF + CB with sentiment boosting, category boost,
+    time-context nudge, and user feedback loop. diversity controls
+    fraction of CB results. Falls back to curated sample products
+    when ML models are unavailable or still downloading.
+    """
+    if not MODELS_READY:
+        return _load_fallback_recs(n, categories)
+    products_check = get_products_df()
+    if products_check.empty:
+        return _load_fallback_recs(n, categories)
+
+    sentiments = get_sentiments()
+
+    # Read user preferred categories from session state (set via onboarding/profile)
+    try:
+        import streamlit as st
+        pref_cats = normalize_categories(
+            st.session_state.get("pref_cats") or []
+        )
+    except Exception:
+        pref_cats = []
+
+    # ── Read user feedback from session state ─────────────────────────────
+    try:
+        import streamlit as st
+        from collections import Counter
+        disliked_pids       = st.session_state.get("disliked_pids", set())
+        liked_pids          = st.session_state.get("liked_pids", set())
+        liked_cats_list     = st.session_state.get("liked_cats_feedback", [])
+        disliked_cats_list  = st.session_state.get("disliked_cats_feedback", [])
+        saved_cats_list     = st.session_state.get("saved_cats", [])
+        # Count how many times each category was liked/disliked/saved (stronger signal = more clicks)
+        liked_cat_counts    = Counter(liked_cats_list)
+        disliked_cat_counts = Counter(disliked_cats_list)
+        saved_cat_counts    = Counter(saved_cats_list)
+    except Exception:
+        disliked_pids = set()
+        liked_pids = set()
+        liked_cat_counts = {}
+        disliked_cat_counts = {}
+        saved_cat_counts = {}
+
+    norm_cats = normalize_categories(categories) if categories else categories
+    cf_n = max(1, int(n * (1 - diversity)))
+    cb_n = max(1, n - cf_n)
+
+    cf_recs = get_cf_recommendations(user_id, n=cf_n, categories=norm_cats)
+    cb_recs = get_cb_recommendations(categories=norm_cats, n=cb_n)
+
+    # Tag each rec with its source weight for the weighted formula
+    for r in cf_recs:
+        r["_src_weight"] = 0.40
+    for r in cb_recs:
+        r["_src_weight"] = 0.35
+
+    # Deduplicate by product_id (CF takes precedence)
+    seen   = {r["product_id"] for r in cf_recs}
+    merged = cf_recs + [r for r in cb_recs if r["product_id"] not in seen]
+
+    # ── Filter out explicitly disliked products ───────────────────────────
+    if disliked_pids:
+        merged = [r for r in merged if r["product_id"] not in disliked_pids]
+
+    # Boost pipeline (applied in order, all non-destructive)
+    for rec in merged:
+        pid        = rec["product_id"]
+        sent_score = sentiments.get(pid, {}).get("score", 0.5)
+        base       = rec["match_score"]
+        src_w      = rec.pop("_src_weight", 0.375)  # default midpoint if unknown
+
+        # 1. Weighted combination: cf_score×0.40 + cbf_score×0.35 + sentiment×0.25
+        # Normalise base to [0,1], apply source weight, add sentiment at 0.25 weight,
+        # then scale back to [1,99].
+        norm_base = base / 99.0
+        boosted   = int((src_w * norm_base + 0.25 * sent_score) / (src_w + 0.25) * 99)
+
+        # 2. Category boost: +5 if in user preferred categories
+        if pref_cats and rec.get("category") in pref_cats:
+            boosted += 5
+
+        # 3. Time-context nudge: +3 if category fits time of day
+        boosted += _time_context_boost(rec.get("category", ""))
+
+        # 4. Feedback boost: liked categories get +8 per vote, capped at +20
+        cat = rec.get("category", "")
+        if cat in liked_cat_counts:
+            boosted += min(20, liked_cat_counts[cat] * 8)
+
+        # 5. Feedback penalty: disliked categories get -12 per vote, capped at -30
+        if cat in disliked_cat_counts:
+            boosted -= min(30, disliked_cat_counts[cat] * 12)
+
+        # 6. Specific liked product bonus: +10 if user explicitly liked this one
+        if pid in liked_pids:
+            boosted += 10
+
+        # 7. Wishlist signal: saved categories get +4 per save, capped at +12
+        if cat in saved_cat_counts:
+            boosted += min(12, saved_cat_counts[cat] * 4)
+
+        rec["match_score"]     = min(99, max(1, boosted))
+        rec["engine"]          = "Hybrid"
+        rec["sentiment_label"] = sentiments.get(pid, {}).get("label", "Mixed")
+        rec["sentiment_score"] = sent_score
+
+    merged.sort(key=lambda x: x["match_score"], reverse=True)
+    return merged[:n]
+
+
+def get_trending(n: int = 20) -> pd.DataFrame:
+    """
+    Trending: products sorted by a trend_score = 40% rating + 60% review_count.
+    Returns a DataFrame compatible with 04_Trending.py display code.
+    """
+    products   = get_products_df()
+    sentiments = get_sentiments()
+
+    if products.empty:
+        return pd.DataFrame()
+
+    df = products.copy()
+    df["average_rating"]  = pd.to_numeric(df["average_rating"],  errors="coerce").fillna(0)
+    df["rating_number"]   = pd.to_numeric(df["rating_number"],   errors="coerce").fillna(0)
+
+    # Only products with meaningful review counts
+    df = df[df["rating_number"] >= 50].copy()
+    if df.empty:
+        df = products.copy()
+        df["average_rating"] = pd.to_numeric(df["average_rating"], errors="coerce").fillna(0)
+        df["rating_number"]  = pd.to_numeric(df["rating_number"],  errors="coerce").fillna(0)
+
+    max_reviews = df["rating_number"].max() or 1
+    df["trend_score"] = (
+        df["average_rating"] * 0.4 +
+        (df["rating_number"] / max_reviews) * 0.6
+    )
+
+    # Add sentiment + price columns for Trending page charts
+    df["price"]           = df["price"].apply(_parse_price)
+    df["sentiment_label"] = df["product_id"].map(
+        lambda pid: sentiments.get(pid, {}).get("label", "Mixed")
+    )
+    df["sentiment_score"] = df["product_id"].map(
+        lambda pid: sentiments.get(pid, {}).get("score", 0.5)
+    )
+    df["review_count"]    = df["rating_number"]
+    df["rating"]          = df["average_rating"]
+    df["asin"]            = df["product_id"]
+    df["is_trending"]     = True
+    df["is_bestseller"]   = False
+
+    return df.nlargest(n, "trend_score").reset_index(drop=True)

@@ -1,0 +1,55 @@
+# Environment variables / credentials
+.env
+.env.*
+.env.local
+*.env
+*.key
+*.pem
+secrets.local.toml
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Trained model files
+saved_models/*.pkl
+
+# Large datasets
+data/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# IDEs
+.vscode/
+.idea/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Logs
+*.log
+
+# Jupyter checkpoints
+notebooks/.ipynb_checkpoints/
+
+# Temporary files
+req_tmp.txt
+
+# Dev utility scripts
+audit_colors.py
+fix_theme.py
+strip_iframe.py
+dump_checkbox.py
+
+# Runtime PKCE cache (generated at runtime, not source)
+.streamlit/auth_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+saved_models/*.parquet
