@@ -9,8 +9,8 @@ import os
 import re
 from pathlib import Path
 from typing import Any, Callable, cast
-from urllib.parse import quote_plus
 
+from utils.product_images import get_product_image_url
 import streamlit as st
 
 # ── Category Name Normalisation ───────────────────────────────────────────────
@@ -219,34 +219,6 @@ def get_stars(rating: float) -> str:
     full = int(rating)
     empty = 5 - full
     return "★" * full + "☆" * empty
-
-
-def _build_unsplash_search_url(query: str) -> str:
-    query = re.sub(r"[^a-zA-Z0-9 ]+", " ", query)
-    query = re.sub(r"\s+", " ", query).strip()
-    if not query:
-        return ""
-    return f"https://images.unsplash.com/640x480/?{quote_plus(query)}"
-
-
-def get_product_image_url(prod: dict) -> str:
-    for key in ("image_url", "image", "img_url", "image_src", "photo_url", "thumbnail", "photo"):
-        val = prod.get(key)
-        if isinstance(val, str) and val.strip():
-            candidate = val.strip()
-            if candidate.startswith("https://images.unsplash.com/640x480/?"):
-                title = str(prod.get("title") or prod.get("name") or prod.get("category") or "").strip()
-                if title:
-                    title_search = _build_unsplash_search_url(title)
-                    if title_search:
-                        return title_search
-            return candidate
-
-    title = str(prod.get("title") or prod.get("name") or prod.get("category") or "product").strip()
-    if title:
-        return _build_unsplash_search_url(title)
-
-    return ""
 
 
 def get_product_image_src(prod: dict) -> str:
