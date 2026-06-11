@@ -51,6 +51,20 @@ def test_get_app_url_no_trailing_slash():
     assert not url.endswith("/"), f"redirect URL must not end with '/': got {url!r}"
 
 
+def test_product_image_url_prefers_title_for_generic_unsplash_query():
+    """Fix regression where generic Unsplash fallback URLs show unrelated images."""
+    from utils.helpers import get_product_image_url
+
+    product = {
+        "title": "Apple AirPods Pro (2nd Generation) True Wireless Earbuds",
+        "image_url": "https://images.unsplash.com/640x480/?electronics,laptop,headphones,gadget",
+    }
+    url = get_product_image_url(product)
+    assert url.startswith("https://images.unsplash.com/640x480/?")
+    assert "Apple+AirPods+Pro+2nd+Generation+True+Wireless+Earbuds" in url
+    assert "electronics%2Claptop%2Cheadphones%2Cgadget" not in url
+
+
 # ── 3. cart.py: public API surface must remain stable ────────────────────────
 
 def test_cart_public_api():
