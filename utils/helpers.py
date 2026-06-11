@@ -8,7 +8,7 @@ import mimetypes
 import os
 import re
 from pathlib import Path
-from typing import Any, Callable
+from typing import Callable, ParamSpec, TypeVar
 from urllib.parse import quote_plus
 
 import streamlit as st
@@ -354,7 +354,9 @@ try:
     _dialog_decorator = st.dialog("Product Details", width="small")
 except Exception:
     # Fallback: identity decorator (dialog won't open, but nothing crashes)
-    def _dialog_decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+    P = ParamSpec("P")
+    F = TypeVar("F", bound=Callable[P, Any])
+    def _dialog_decorator(fn: F) -> F:
         return fn
 
 @_dialog_decorator
