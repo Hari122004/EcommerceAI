@@ -49,7 +49,7 @@ _BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_DIR  = os.path.join(_BASE_DIR, "saved_models")
 
 # ── HuggingFace Hub auto-download config ──────────────────────────────────────
-HF_REPO = "Hemanth1429/intellirec-recommendation-model"
+HF_REPO = "Hemanth1429/smartcart-recommendation-model"
 HF_BASE = f"https://huggingface.co/{HF_REPO}/resolve/main"
 
 # Bump this string whenever new model files are uploaded to HuggingFace.

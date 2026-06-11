@@ -209,7 +209,7 @@ def login_user(email: str, password: str):
             except Exception:
                 pass
             from utils.notifications import add_notification
-            add_notification('success', 'Logged In Successfully', 'Welcome back to IntelliRec!')
+            add_notification('success', 'Logged In Successfully', 'Welcome back to SmartCart!')
             return True, "Login successful"
         return False, "Incorrect email or password. Please try again."
     except Exception as e:

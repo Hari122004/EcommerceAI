@@ -301,7 +301,7 @@ _LOGO = """
       <line x1="7"  y1="3.5" x2="13" y2="3.5" stroke="white" stroke-width="0.8" stroke-linecap="round"/>
     </svg>
   </div>
-  <span style="font-size:22px;font-weight:700;color:#6C63FF;letter-spacing:-0.5px">IntelliRec</span>
+  <span style="font-size:22px;font-weight:700;color:#6C63FF;letter-spacing:-0.5px">SmartCart</span>
 </div>
 """
 
@@ -614,10 +614,10 @@ def render_login():
                     st.session_state.username = "guest_user"
                     st.session_state.user_id = "guest"
                     st.session_state.is_guest = True
-                    st.session_state.user_email = "guest@intellirec.com"
+                    st.session_state.user_email = "guest@smartcart.com"
                     st.session_state.current_user = {
                         "username": "guest_user", "name": "Guest User",
-                        "email": "guest@intellirec.com", "member_since": "Today",
+                        "email": "guest@smartcart.com", "member_since": "Today",
                     }
                     st.rerun()
 

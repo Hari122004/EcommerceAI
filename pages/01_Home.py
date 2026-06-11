@@ -132,6 +132,7 @@ def _get_real_products_as_list(n=40):
             "store":          str(row.get("store") or ""),
             "sentiment_label": sent.get("label", "Mixed"),
             "sentiment_score": sent.get("score", 0.5),
+            "image_url":       str(row.get("image_url") or row.get("image") or row.get("img_url") or row.get("image_src") or row.get("photo_url") or ""),
             "is_trending":    float(row["rating_number"]) > 1000,
             "is_bestseller":  float(row["average_rating"]) >= 4.5,
             "description_short": "",

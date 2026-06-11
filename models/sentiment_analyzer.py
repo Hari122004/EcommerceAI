@@ -1,6 +1,6 @@
 """
 models/sentiment_analyzer.py
-IntelliRec — VADER Sentiment Analysis
+SmartCart — VADER Sentiment Analysis
 Sourcesys Technologies Internship Project
 Team: Hemanthselva AK, Monish Kaarthi RK, Vishal KS, Vishal M
 """

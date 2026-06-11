@@ -1,5 +1,5 @@
 """
-IntelliRec Theme Utility v5.1 — iOS 26 Glassmorphism System
+SmartCart Theme Utility v5.1 — iOS 26 Glassmorphism System
 Manages light/dark/system theme and injects all global CSS.
 Toggle button fix: uses data-testid="baseButton-secondary" which
 Streamlit actually renders as a real HTML attribute on <button> elements.

@@ -218,13 +218,13 @@ st.markdown(f'<p style="font-size:14px;color:{p["text_secondary"]};margin-bottom
             unsafe_allow_html=True)
 
 team = [
-    {"name": "Hemanthselva A K", "role": "Team Lead & Full-Stack AI", "init": "HA", "color": "#6366f1"},
-    {"name": "Monish Kaarthi R K", "role": "ML Engineer",             "init": "MK", "color": "#06B6D4"},
-    {"name": "Vishal K S",         "role": "Data Scientist",           "init": "VK", "color": "#10B981"},
-    {"name": "Vishal M",           "role": "Backend Developer",        "init": "VM", "color": "#F59E0B"},
+  {"name": "Ajay kumar ", "role": "Team Lead & Full-Stack AI", "init": "AK", "color": "#6366f1"},
+  {"name": "Dhanush", "role": "ML Engineer", "init": "DH", "color": "#8b5cf6"},
+  {"name": "Harish ", "role": "Data Scientist", "init": "HA", "color": "#06B6D4"},
+  
 ]
 
-tc = st.columns(4)
+tc = st.columns(len(team))
 for col, m in zip(tc, team):
     with col:
         st.markdown(f"""

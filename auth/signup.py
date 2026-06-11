@@ -353,7 +353,7 @@ _LOGO = """
       <line x1="7"  y1="3.5" x2="13" y2="3.5" stroke="white" stroke-width="0.8" stroke-linecap="round"/>
     </svg>
   </div>
-  <span style="font-size:22px;font-weight:700;color:#6C63FF;letter-spacing:-0.5px">IntelliRec</span>
+  <span style="font-size:22px;font-weight:700;color:#6C63FF;letter-spacing:-0.5px">SmartCart</span>
 </div>
 """
 

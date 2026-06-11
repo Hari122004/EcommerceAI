@@ -3,6 +3,11 @@ SmartCart AI Helpers — Product card rendering, SVG icons, category/sentiment d
 SVG strings are kept as single-line (no newlines) to prevent Python-Markdown from
 treating indented lines inside the HTML as code blocks.
 """
+import base64
+import mimetypes
+import os
+from pathlib import Path
+
 import streamlit as st
 
 # ── Category Name Normalisation ───────────────────────────────────────────────
@@ -213,6 +218,40 @@ def get_stars(rating: float) -> str:
     return "★" * full + "☆" * empty
 
 
+def get_product_image_url(prod: dict) -> str:
+    for key in ("image_url", "image", "img_url", "image_src", "photo_url", "thumbnail", "photo"):
+        val = prod.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.strip()
+    return ""
+
+
+def get_product_image_src(prod: dict) -> str:
+    url = get_product_image_url(prod)
+    if not url:
+        return ""
+    if url.startswith("data:") or url.startswith("http://") or url.startswith("https://"):
+        return url
+
+    # Resolve local file paths relative to the repo root or current working dir.
+    candidate = Path(url)
+    if not candidate.is_absolute():
+        candidate = Path(os.getcwd()) / url
+    if not candidate.exists():
+        repo_root = Path(__file__).resolve().parents[1]
+        candidate = repo_root / url
+    if not candidate.exists():
+        return url
+
+    mime_type, _ = mimetypes.guess_type(str(candidate))
+    mime_type = mime_type or "application/octet-stream"
+    try:
+        encoded = base64.b64encode(candidate.read_bytes()).decode("ascii")
+        return f"data:{mime_type};base64,{encoded}"
+    except Exception:
+        return url
+
+
 def render_product_card_html(prod: dict, idx: int = 0, show_match: bool = True) -> str:
     """
     Returns a single-line HTML string for a glassmorphism product card.
@@ -238,8 +277,20 @@ def render_product_card_html(prod: dict, idx: int = 0, show_match: bool = True) 
     category         = prod.get('category', '')
     sentiment_label  = prod.get('sentiment_label', '')
 
-    stars    = '★' * rating + '☆' * (5 - rating)
-    svg      = cat["svg"]  # already single-line
+    stars      = '★' * rating + '☆' * (5 - rating)
+    svg        = cat["svg"]  # already single-line
+    image_src = get_product_image_src(prod)
+    image_html = ""
+    hero_style = f"background:linear-gradient(135deg,{cat['color1']},{cat['color2']});"
+    if image_src:
+        safe_title = str(title).replace('"', '&quot;').replace("'", '&#39;')
+        image_html = (
+            f'<div style="position:absolute;inset:0;overflow:hidden;">'
+            f'<img src="{image_src}" alt="{safe_title}" '
+            f'style="width:100%;height:100%;object-fit:cover;display:block;" />'
+            f'</div>'
+        )
+        hero_style = "background:#111;"
 
     match_html = ""
     if show_match:
@@ -257,8 +308,9 @@ def render_product_card_html(prod: dict, idx: int = 0, show_match: bool = True) 
     # One continuous string — no newlines!
     return (
         f'<div style="background:{card_bg};backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid {border_col};border-radius:20px;box-shadow:0 4px 20px rgba(108,99,255,0.12);overflow:hidden;margin-bottom:4px">'
-        f'<div style="background:linear-gradient(135deg,{cat["color1"]},{cat["color2"]});height:140px;display:flex;align-items:center;justify-content:center;position:relative;flex-direction:column">'
-        f'{svg}'
+        f'<div style="{hero_style}height:140px;display:flex;align-items:center;justify-content:center;position:relative;flex-direction:column">'
+        f'{image_html}'
+        f'{svg if not image_src else ""}'
         f'<span style="position:absolute;top:8px;left:8px;background:{cat["badge_bg"]};color:{cat["badge_text"]};font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px">{category}</span>'
         '</div>'
         f'<div style="padding:14px 16px 12px;background-color:{card_bg};border-radius:0 0 20px 20px">'
@@ -337,14 +389,24 @@ def _show_product_detail_dialog(product: dict):
 
     stars_full = get_stars(rating)
 
-    # Header gradient banner
-    st.markdown(
-        f'<div style="background:linear-gradient(135deg,{cat["color1"]},{cat["color2"]});'
-        f'border-radius:16px;padding:28px;display:flex;align-items:center;'
-        f'justify-content:center;margin-bottom:20px;">'
-        f'{cat["svg"]}</div>',
-        unsafe_allow_html=True
-    )
+    image_src = get_product_image_src(product)
+    if image_src:
+        safe_title = str(title).replace('"', '&quot;').replace("'", '&#39;')
+        st.markdown(
+            f'<div style="border-radius:16px;overflow:hidden;margin-bottom:20px;">'
+            f'<img src="{image_src}" alt="{safe_title}" '
+            f'style="width:100%;height:260px;object-fit:cover;display:block;" />'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            f'<div style="background:linear-gradient(135deg,{cat["color1"]},{cat["color2"]});'
+            f'border-radius:16px;padding:28px;display:flex;align-items:center;'
+            f'justify-content:center;margin-bottom:20px;>'
+            f'{cat["svg"]}</div>',
+            unsafe_allow_html=True
+        )
 
     # Title + price row
     st.markdown(
