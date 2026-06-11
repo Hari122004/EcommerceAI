@@ -8,7 +8,7 @@ import mimetypes
 import os
 import re
 from pathlib import Path
-from typing import Callable, ParamSpec, TypeVar
+from typing import Any, Callable, cast
 from urllib.parse import quote_plus
 
 import streamlit as st
@@ -354,9 +354,7 @@ try:
     _dialog_decorator = st.dialog("Product Details", width="small")
 except Exception:
     # Fallback: identity decorator (dialog won't open, but nothing crashes)
-    P = ParamSpec("P")
-    F = TypeVar("F", bound=Callable[P, Any])
-    def _dialog_decorator(fn: F) -> F:
+    def _dialog_decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
         return fn
 
 @_dialog_decorator
@@ -409,7 +407,7 @@ def _show_product_detail_dialog(product: dict):
     reviews  = int(product.get('review_count', 0))
     category = product.get('category', '')
     sentiment_label = product.get('sentiment_label', '')
-    description = product.get('description', product.get('features', ''))
+    description = product.get('description') or product.get('description_short') or product.get('features', '')
     asin     = product.get('asin', product.get('product_id', ''))
 
     stars_full = get_stars(rating)

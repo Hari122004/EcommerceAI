@@ -490,6 +490,10 @@ def _row_to_card(row: pd.Series, sentiment: dict) -> dict:
         "rating":       float(row.get("average_rating") or 0),
         "review_count": int(row.get("rating_number") or 0),
         "store":        str(row.get("store") or ""),
+        "image_url":    str(row.get("image_url") or row.get("image") or row.get("img_url") or row.get("image_src") or row.get("photo_url") or row.get("thumbnail") or ""),
+        "description":  str(row.get("description") or row.get("description_short") or row.get("features") or ""),
+        "description_short": str(row.get("description_short") or row.get("description") or row.get("features") or ""),
+        "features":     row.get("features", ""),
         "sentiment_label": sentiment.get("label", "Mixed"),
         "sentiment_score": sentiment.get("score", 0.5),
         "sentiment_compound": sentiment.get("compound", 0.0),
@@ -585,6 +589,9 @@ def _load_fallback_recs(n: int = 12, categories: list = None) -> list:
             card = dict(p)
             card.setdefault("product_id", card.get("asin", ""))
             card.setdefault("asin", card.get("product_id", ""))
+            card.setdefault("image_url", card.get("image_url") or card.get("image") or card.get("img_url") or card.get("image_src") or card.get("photo_url") or card.get("thumbnail") or "")
+            card.setdefault("description", card.get("description") or card.get("description_short") or card.get("features") or "")
+            card.setdefault("description_short", card.get("description_short") or card.get("description") or card.get("features") or "")
             card.setdefault("match_score", 62)
             card.setdefault("predicted_rating", card.get("rating", 3.5))
             card.setdefault("explanation", "Curated pick while AI engine warms up")
