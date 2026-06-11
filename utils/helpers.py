@@ -230,11 +230,21 @@ def get_product_image_src(prod: dict) -> str:
 
     # Resolve local file paths relative to the repo root or current working dir.
     candidate = Path(url)
+    repo_root = Path(__file__).resolve().parents[1]
+
+    def _resolve_candidate(path: Path) -> Path:
+        if path.exists():
+            return path
+        if path.parent.exists():
+            for entry in path.parent.iterdir():
+                if entry.name.lower() == path.name.lower():
+                    return entry
+        return path
+
     if not candidate.is_absolute():
-        candidate = Path(os.getcwd()) / url
+        candidate = _resolve_candidate(Path(os.getcwd()) / url)
     if not candidate.exists():
-        repo_root = Path(__file__).resolve().parents[1]
-        candidate = repo_root / url
+        candidate = _resolve_candidate(repo_root / url)
     if not candidate.exists():
         return url
 

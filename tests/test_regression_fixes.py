@@ -65,6 +65,32 @@ def test_product_image_url_prefers_title_for_generic_unsplash_query():
     assert "electronics%2Claptop%2Cheadphones%2Cgadget" not in url
 
 
+def test_get_product_image_src_resolves_local_asset_case_insensitively(tmp_path, monkeypatch):
+    """Local asset paths should resolve even when the JSON path case differs from disk."""
+    from pathlib import Path
+    from utils.helpers import get_product_image_src
+
+    repo_root = tmp_path / "repo"
+    assets_dir = repo_root / "assets"
+    assets_dir.mkdir(parents=True)
+    (assets_dir / "p1.jpg").write_bytes(b"\xff\xd8\xff")
+
+    monkeypatch.chdir(repo_root)
+    real_exists = Path.exists
+
+    def fake_exists(self):
+        path_str = str(self)
+        if path_str.endswith("assets\\P1.jpg") or path_str.endswith("assets/P1.jpg"):
+            return False
+        return real_exists(self)
+
+    monkeypatch.setattr(Path, "exists", fake_exists)
+
+    product = {"image_url": "assets/P1.jpg"}
+    data_url = get_product_image_src(product)
+    assert data_url.startswith("data:image/jpeg;base64,")
+
+
 # ── 3. cart.py: public API surface must remain stable ────────────────────────
 
 def test_cart_public_api():
