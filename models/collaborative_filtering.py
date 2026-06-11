@@ -11,15 +11,18 @@ import joblib
 import os
 import time
 
-try:
-    from surprise import Dataset, Reader, SVD, KNNBasic
-    from surprise.model_selection import train_test_split
-    from surprise import accuracy
-    SURPRISE_AVAILABLE = True
-except ImportError:
-    SURPRISE_AVAILABLE = False
-    print("[WARNING] scikit-surprise not installed. "
-          "Install via: pip install scikit-surprise")
+
+def _get_surprise_components():
+    try:
+        from surprise import Dataset, Reader, SVD, KNNBasic, accuracy
+        from surprise.model_selection import train_test_split
+        return Dataset, Reader, SVD, KNNBasic, train_test_split, accuracy
+    except Exception as exc:
+        raise ImportError(
+            "scikit-surprise is not installed or unavailable. "
+            "Install via: pip install scikit-surprise"
+        ) from exc
+
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 MODELS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'saved_models')
@@ -46,8 +49,7 @@ class CollaborativeFilteringModel:
         Build Surprise Dataset from a DataFrame with columns
         [user_id, product_id, rating].
         """
-        if not SURPRISE_AVAILABLE:
-            raise ImportError("scikit-surprise is required.")
+        Dataset, Reader, _, __, train_test_split, _ = _get_surprise_components()
 
         reader = Reader(rating_scale=(1, 5))
         data = Dataset.load_from_df(
@@ -65,8 +67,7 @@ class CollaborativeFilteringModel:
     def train_svd(self, n_factors=100, n_epochs=20,
                   lr_all=0.005, reg_all=0.02):
         """Train SVD matrix factorization model."""
-        if not SURPRISE_AVAILABLE:
-            raise ImportError("scikit-surprise is required.")
+        _, _, SVD, __, _, accuracy = _get_surprise_components()
 
         print(f"Training SVD  n_factors={n_factors} n_epochs={n_epochs}...")
         t0 = time.time()
@@ -95,8 +96,7 @@ class CollaborativeFilteringModel:
     def train_knn(self, k=40,
                   sim_options=None):
         """Train KNN-based collaborative filter."""
-        if not SURPRISE_AVAILABLE:
-            raise ImportError("scikit-surprise is required.")
+        _, _, _, KNNBasic, _, accuracy = _get_surprise_components()
 
         if sim_options is None:
             sim_options = {'name': 'cosine', 'user_based': True}
