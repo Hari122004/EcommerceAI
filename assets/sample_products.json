@@ -13,7 +13,7 @@
         "image_placeholder_color": "#48DBFB",
         "description_short": "Industry-leading noise cancellation with 30-hour battery life and multipoint connection.",
         "product_id": "B0000001",
-        "image_url": "https://image.unsplash.com/800x600/?Sony%20WH-1000XM5%20Wireless%20Noise%20Cancelling%20Headphones"
+        "image_url": "assets/P1.jpg"
     },
     {
         "asin": "B0000002",
@@ -29,7 +29,7 @@
         "image_placeholder_color": "#FF6B6B",
         "description_short": "Pressure cooker, slow cooker, rice cooker, steamer, sautÃ©, yogurt maker and warmer in one.",
         "product_id": "B0000002",
-        "image_url": "https://image.unsplash.com/800x600/?Instant%20Pot%20Duo%207-in-1%20Electric%20Pressure%20Cooker%206%20Qt"
+        "image_url": "assets/P2.jpg"
     },
     {
         "asin": "B0000003",
@@ -45,7 +45,7 @@
         "image_placeholder_color": "#5F27CD",
         "description_short": "Active Noise Cancellation, Adaptive Transparency, Personalized Spatial Audio with MagSafe charging.",
         "product_id": "B0000003",
-        "image_url": "assets/p1.jpg"
+        "image_url": "assets/P3.jpg"
     },
     {
         "asin": "B0000004",
@@ -61,7 +61,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "Laser detects hidden dust, intelligent suction auto-adjusts, LCD screen displays run-time.",
         "product_id": "B0000004",
-        "image_url": "https://image.unsplash.com/800x600/?Dyson%20V15%20Detect%20Cordless%20Vacuum%20Cleaner%20Absolute"
+        "image_url": "assets/P4.jpg"
     },
     {
         "asin": "B0000005",
@@ -77,7 +77,7 @@
         "image_placeholder_color": "#FF9F43",
         "description_short": "11 one-touch cooking presets, preheat function, shake reminder, dishwasher-safe basket.",
         "product_id": "B0000005",
-        "image_url": "https://image.unsplash.com/800x600/?COSORI%20Air%20Fryer%205.8Qt%201700W%20XL%20Electric%20Hot%20Air%20Fryer"
+        "image_url": "assets/P5.jpg"
     },
     {
         "asin": "B0000006",
@@ -93,7 +93,7 @@
         "image_placeholder_color": "#FF6B6B",
         "description_short": "10-speed slide control, 59 touchpoints around the bowl for a thorough mix, 10+ attachments available.",
         "product_id": "B0000006",
-        "image_url": "https://image.unsplash.com/800x600/?KitchenAid%20Artisan%20Series%205%20Quart%20Tilt-Head%20Stand%20Mixer"
+        "image_url": "assets/P6.jpg"
     },
     {
         "asin": "B0000007",
@@ -109,7 +109,7 @@
         "image_placeholder_color": "#5F27CD",
         "description_short": "Variable speed control, aircraft-grade stainless steel blades, self-cleaning in 30-60 seconds.",
         "product_id": "B0000007",
-        "image_url": "https://image.unsplash.com/800x600/?Vitamix%205200%20Professional-Grade%20Full-Size%20Blender"
+        "image_url": "assets/P7.jpg"
     },
     {
         "asin": "B0000008",
@@ -125,7 +125,7 @@
         "image_placeholder_color": "#5F27CD",
         "description_short": "Smart backlit keys, Easy-Switch for 3 devices, USB-C charging, compatible with Windows and macOS.",
         "product_id": "B0000008",
-        "image_url": "https://image.unsplash.com/800x600/?Logitech%20MX%20Keys%20S%20Wireless%20Keyboard%20and%20Mouse%20Combo"
+        "image_url": "assets/P8.jpg"
     },
     {
         "asin": "B0000009",
@@ -141,7 +141,7 @@
         "image_placeholder_color": "#5F27CD",
         "description_short": "Avoids pet waste, 60-day clean base disposal, PrecisionVision Navigation, smart mapping.",
         "product_id": "B0000009",
-        "image_url": "https://image.unsplash.com/800x600/?iRobot%20Roomba%20j7%2B%20Self-Emptying%20Robot%20Vacuum"
+        "image_url": "assets/P9.jpg"
     },
     {
         "asin": "B0000010",
@@ -157,7 +157,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "OLED evo panel, Brightness Booster, a9 AI Processor 4K Gen6, webOS 23, built-in Google Assistant.",
         "product_id": "B0000010",
-        "image_url": "https://image.unsplash.com/800x600/?LG%20C3%2055-Inch%20OLED%20evo%204K%20Smart%20TV%202023%20Model"
+        "image_url": "assets/P10.jpg"
     },
     {
         "asin": "B0000011",
@@ -173,7 +173,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "Quiet and aware modes, high-fidelity audio, up to 24-hour battery life, USB-C charging.",
         "product_id": "B0000011",
-        "image_url": "https://image.unsplash.com/800x600/?Bose%20QuietComfort%2045%20Bluetooth%20Wireless%20Headphones"
+        "image_url": "assets/P11.jpg"
     },
     {
         "asin": "B0000012",
@@ -189,7 +189,7 @@
         "image_placeholder_color": "#FF9F43",
         "description_short": "Adaptive Noise Cancelling, Ambient Aware, 70-hour battery life, JBL Pure Bass Sound.",
         "product_id": "B0000012",
-        "image_url": "https://image.unsplash.com/800x600/?JBL%20Tune%20770NC%20Wireless%20Over-Ear%20Headphones"
+        "image_url": "assets/P12.jpg"
     },
     {
         "asin": "B0000013",
@@ -205,7 +205,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "720-watt motor, stainless steel S-blade, dough blade, shredding disc, slicing disc included.",
         "product_id": "B0000013",
-        "image_url": "https://image.unsplash.com/800x600/?Cuisinart%2014-Cup%20Food%20Processor%20Pro%20Custom%2011"
+        "image_url": "assets/P13.jpg"
     },
     {
         "asin": "B0000014",
@@ -221,7 +221,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "Built-in conical burr grinder, 15 bar pressure, PID temperature control, manual microfoam milk texturing.",
         "product_id": "B0000014",
-        "image_url": "https://image.unsplash.com/800x600/?Breville%20Barista%20Express%20Espresso%20Machine%20BES870XL"
+        "image_url": "assets/P14.jpg"
     },
     {
         "asin": "B0000015",
@@ -237,7 +237,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "24.1 Megapixel APS-C CMOS sensor, 4K UHD video, Dual Pixel CMOS AF, eye detection AF.",
         "product_id": "B0000015",
-        "image_url": "https://image.unsplash.com/800x600/?Canon%20EOS%20Rebel%20SL3%20Digital%20SLR%20Camera%20with%2018-55mm%20Lens"
+        "image_url": "assets/P15.jpg"
     },
     {
         "asin": "B0000016",
@@ -253,7 +253,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "Smart digital display, 140W bidirectional USB-C port, charges MacBook Pro in 2 hours.",
         "product_id": "B0000016",
-        "image_url": "https://image.unsplash.com/800x600/?Anker%20737%20Power%20Bank%2024000mAh%20140W%20USB-C%20Portable%20Charger"
+        "image_url": "assets/P16.jpg"
     },
     {
         "asin": "B0000017",
@@ -269,7 +269,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "Superior heat distribution, tight-fitting lid, compatible with all cooktops including induction.",
         "product_id": "B0000017",
-        "image_url": "https://image.unsplash.com/800x600/?Le%20Creuset%20Enameled%20Cast%20Iron%20Signature%20Round%20Dutch%20Oven%205.5%20Qt"
+        "image_url": "assets/P17.jpg"
     },
     {
         "asin": "B0000018",
@@ -285,7 +285,7 @@
         "image_placeholder_color": "#48DBFB",
         "description_short": "IPS Black technology for 2x deeper blacks, 3840x2160 resolution, 90W USB-C Power Delivery.",
         "product_id": "B0000018",
-        "image_url": "https://image.unsplash.com/800x600/?Dell%20UltraSharp%20U2723D%2027-Inch%204K%20USB-C%20Monitor"
+        "image_url": "assets/P18.jpg"
     },
     {
         "asin": "B0000019",
@@ -301,7 +301,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "3-layer nonstick interior, oven-safe to 450Â°F, induction compatible, dishwasher safe.",
         "product_id": "B0000019",
-        "image_url": "https://image.unsplash.com/800x600/?Calphalon%20Premier%20Hard-Anodized%20Nonstick%20Cookware%20Set%2011-Piece"
+        "image_url": "assets/P19.jpg"
     },
     {
         "asin": "B0000020",
@@ -317,7 +317,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "3-ply bonded construction, stainless steel cooking surface, oven and broiler safe up to 600Â°F.",
         "product_id": "B0000020",
-        "image_url": "https://image.unsplash.com/800x600/?All-Clad%20D3%20Stainless%20Steel%20Tri-Ply%20Bonded%20Fry%20Pan%2012-Inch"
+        "image_url": "assets/P20.jpg"
     },
     {
         "asin": "B0000021",
@@ -333,7 +333,7 @@
         "image_placeholder_color": "#FF9F43",
         "description_short": "S9 SiP chip, Double Tap gesture, crash detection, blood oxygen app, always-on Retina display.",
         "product_id": "B0000021",
-        "image_url": "https://image.unsplash.com/800x600/?Apple%20Watch%20Series%209%20GPS%2045mm%20Smartwatch"
+        "image_url": "assets/P21.jpg"
     },
     {
         "asin": "B0000022",
@@ -349,7 +349,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "30,000 BTU-per-hour input, porcelain-enameled cast iron grates, GS4 grilling system.",
         "product_id": "B0000022",
-        "image_url": "https://image.unsplash.com/800x600/?Weber%20Spirit%20II%20E-310%203-Burner%20Liquid%20Propane%20Gas%20Grill"
+        "image_url": "assets/P22.jpg"
     },
     {
         "asin": "B0000023",
@@ -365,7 +365,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "DuoClean PowerFins, self-cleaning brushroll, anti-allergen complete seal, 60-min runtime.",
         "product_id": "B0000023",
-        "image_url": "https://image.unsplash.com/800x600/?Shark%20IZ462H%20Vertex%20Lightweight%20Cordless%20Stick%20Vacuum"
+        "image_url": "assets/P23.jpg"
     },
     {
         "asin": "B0000024",
@@ -381,7 +381,7 @@
         "image_placeholder_color": "#5F27CD",
         "description_short": "HEPA H13 and activated carbon filtration, 350Â° oscillation, auto mode, real-time air quality reporting.",
         "product_id": "B0000024",
-        "image_url": "https://image.unsplash.com/800x600/?Dyson%20Pure%20Hot%2BCool%20HP07%20Air%20Purifier%20Heater%20Fan"
+        "image_url": "assets/P24.jpg"
     },
     {
         "asin": "B0000025",
@@ -397,7 +397,7 @@
         "image_placeholder_color": "#FF9F43",
         "description_short": "Intel Core i9-13980HX, NVIDIA GeForce RTX 4070, 16GB DDR5, 1TB PCIe SSD, ROG Intelligent Cooling.",
         "product_id": "B0000025",
-        "image_url": "https://image.unsplash.com/800x600/?ASUS%20ROG%20Strix%20G16%20Gaming%20Laptop%2016%22%20FHD%20165Hz%20RTX%204070"
+        "image_url": "assets/P25.jpg"
     },
     {
         "asin": "B0000026",
@@ -413,7 +413,7 @@
         "image_placeholder_color": "#5F27CD",
         "description_short": "Non-slip base, pour spout, angled interior surface, includes 1.5, 3, and 5 quart bowls.",
         "product_id": "B0000026",
-        "image_url": "https://image.unsplash.com/800x600/?OXO%20Good%20Grips%203-Piece%20Stainless%20Steel%20Mixing%20Bowl%20Set"
+        "image_url": "assets/P26.jpg"
     },
     {
         "asin": "B0000027",
@@ -429,7 +429,7 @@
         "image_placeholder_color": "#FF9F43",
         "description_short": "Barcode reading technology, 5 cup sizes from espresso to Alto, 30-second heat-up time.",
         "product_id": "B0000027",
-        "image_url": "https://image.unsplash.com/800x600/?Nespresso%20Vertuo%20Next%20Coffee%20and%20Espresso%20Machine%20by%20Breville"
+        "image_url": "assets/P27.jpg"
     },
     {
         "asin": "B0000028",
@@ -445,7 +445,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "MultiStream Technology, BrewID auto-adjusts brew settings, 78 oz reservoir, compatible with My K-Cup.",
         "product_id": "B0000028",
-        "image_url": "https://image.unsplash.com/800x600/?Keurig%20K-Supreme%20Plus%20SMART%20Single%20Serve%20Coffee%20Maker"
+        "image_url": "assets/P28.jpg"
     },
     {
         "asin": "B0000029",
@@ -461,7 +461,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "24.2MP Exmor CMOS sensor, 4K video, real-time Eye AF, directional 3-capsule mic, product showcase mode.",
         "product_id": "B0000029",
-        "image_url": "https://image.unsplash.com/800x600/?Sony%20ZV-E10%20APS-C%20Mirrorless%20Vlog%20Camera%20with%2016-50mm%20Lens"
+        "image_url": "assets/P29.jpg"
     },
     {
         "asin": "B0000030",
@@ -477,7 +477,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "210W suction power, AI-powered auto-adjust, all-in-one clean station, up to 60-min runtime.",
         "product_id": "B0000030",
-        "image_url": "https://image.unsplash.com/800x600/?Samsung%20Bespoke%20Jet%20AI%20Cordless%20Stick%20Vacuum%20Cleaner"
+        "image_url": "assets/P30.jpg"
     },
     {
         "asin": "B0000031",
@@ -493,7 +493,7 @@
         "image_placeholder_color": "#FF6B6B",
         "description_short": "6 smart programs, EvenCrisp technology, no-preheat, ClearCook viewing window, dishwasher-safe tray.",
         "product_id": "B0000031",
-        "image_url": "https://image.unsplash.com/800x600/?Instant%20Vortex%20Plus%206-Quart%20Air%20Fryer%20with%20ClearCook%20Window"
+        "image_url": "assets/P31.jpg"
     },
     {
         "asin": "B0000032",
@@ -509,7 +509,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "13 cooking functions, Super Convection technology, interior oven light, Element IQ system.",
         "product_id": "B0000032",
-        "image_url": "https://image.unsplash.com/800x600/?Breville%20Smart%20Oven%20Air%20Fryer%20Pro%2013-Element%20Convection%20Oven"
+        "image_url": "assets/P32.jpg"
     },
     {
         "asin": "B0000033",
@@ -525,7 +525,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "GaN II technology, charges MacBook Air in 2h, dynamic power distribution, foldable plug.",
         "product_id": "B0000033",
-        "image_url": "https://image.unsplash.com/800x600/?Anker%20735%20Charger%20GaNPrime%2065W%20USB-C%20Fast%20Charger%203-Port"
+        "image_url": "assets/P33.jpg"
     },
     {
         "asin": "B0000034",
@@ -541,7 +541,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "7-inch OLED screen, wide adjustable stand, 64GB internal storage, enhanced audio, wired LAN port.",
         "product_id": "B0000034",
-        "image_url": "https://image.unsplash.com/800x600/?Nintendo%20Switch%20OLED%20Model%20Console%20with%20White%20Joy-Con"
+        "image_url": "assets/P34.jpg"
     },
     {
         "asin": "B0000035",
@@ -557,7 +557,7 @@
         "image_placeholder_color": "#FF9F43",
         "description_short": "6000MHz speed, 2x16GB kit, individually tuned RGB lighting, XMP 3.0 and EXPO support.",
         "product_id": "B0000035",
-        "image_url": "https://image.unsplash.com/800x600/?Corsair%20Vengeance%20RGB%20DDR5-6000%2032GB%20Desktop%20Memory%20Kit"
+        "image_url": "assets/P35.jpg"
     },
     {
         "asin": "B0000036",
@@ -573,7 +573,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "Dual-zone temperature control, integrated drip tray, brushed stainless steel, removable nonstick plates.",
         "product_id": "B0000036",
-        "image_url": "https://image.unsplash.com/800x600/?Cuisinart%20Griddler%20Five%205-in-1%20Griddler%20Cooking%20System"
+        "image_url": "assets/P36.jpg"
     },
     {
         "asin": "B0000037",
@@ -589,7 +589,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "Pre-seasoned with natural vegetable oil, heat retention, oven, stovetop, grill and campfire safe.",
         "product_id": "B0000037",
-        "image_url": "https://image.unsplash.com/800x600/?Lodge%2010.25%20Inch%20Pre-Seasoned%20Cast%20Iron%20Dual%20Handle%20Pan"
+        "image_url": "assets/P37.jpg"
     },
     {
         "asin": "B0000038",
@@ -605,7 +605,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "Fits a 12\" pizza, 9 cooking functions, keep-warm setting, stainless steel exterior, easy-clean interior.",
         "product_id": "B0000038",
-        "image_url": "https://image.unsplash.com/800x600/?Black%2BDecker%206-Slice%20Extra-Crispy%20Convection%20Countertop%20Toaster%20Oven"
+        "image_url": "assets/P38.jpg"
     },
     {
         "asin": "B0000039",
@@ -621,7 +621,7 @@
         "image_placeholder_color": "#5F27CD",
         "description_short": "Exynos 1380, 10090mAh battery, IP68 water resistance, S Pen included, expandable storage up to 1TB.",
         "product_id": "B0000039",
-        "image_url": "https://image.unsplash.com/800x600/?Samsung%20Galaxy%20Tab%20S9%20FE%2010.9-Inch%20128GB%20Android%20Tablet"
+        "image_url": "assets/P39.jpg"
     },
     {
         "asin": "B0000040",
@@ -637,7 +637,7 @@
         "image_placeholder_color": "#1DD1A1",
         "description_short": "Turbo mode cooks 30% faster, app-guided cooking, magnetic clip, 1100+ recipes in the Joule app.",
         "product_id": "B0000040",
-        "image_url": "https://image.unsplash.com/800x600/?Breville%20Joule%20Turbo%20Sous%20Vide%20Machine%201200W"
+        "image_url": "assets/P40.jpg"
     },
     {
         "asin": "B0000041",
@@ -653,7 +653,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "1200W heating element, connects to the Anova app via Wi-Fi and Bluetooth, IPX7 waterproof.",
         "product_id": "B0000041",
-        "image_url": "https://image.unsplash.com/800x600/?Anova%20Culinary%20Sous%20Vide%20Precision%20Cooker%20Pro%20Wi-Fi"
+        "image_url": "assets/P41.jpg"
     },
     {
         "asin": "B0000042",
@@ -669,7 +669,7 @@
         "image_placeholder_color": "#54A0FF",
         "description_short": "5 program settings, wireless connectivity, 2.2HP motor, built-in wireless connectivity, self-cleaning.",
         "product_id": "B0000042",
-        "image_url": "https://image.unsplash.com/800x600/?Vitamix%20A3500%20Ascent%20Series%20Smart%20Blender%20Professional-Grade"
+        "image_url": "assets/P42.jpg"
     },
     {
         "asin": "B0000043",
@@ -685,7 +685,7 @@
         "image_placeholder_color": "#48DBFB",
         "description_short": "1500-watt motor, 72-oz pitcher, 8-cup processor bowl, two 16-oz Nutri Ninja cups, total crushing blades.",
         "product_id": "B0000043",
-        "image_url": "https://image.unsplash.com/800x600/?Ninja%20BL770%20Mega%20Kitchen%20System%2072-oz%20Blender%20Food%20Processor"
+        "image_url": "assets/P43.jpg"
     },
     {
         "asin": "B0000044",
@@ -701,7 +701,7 @@
         "image_placeholder_color": "#FF9F43",
         "description_short": "6 cooking presets, auto-shutoff, non-stick crisper tray, up to 70% fewer calories than frying.",
         "product_id": "B0000044",
-        "image_url": "https://image.unsplash.com/800x600/?Dash%206-Quart%20Family%20Size%20Air%20Fryer%20with%20Digital%20Temperature%20Control"
+        "image_url": "assets/P44.jpg"
     },
     {
         "asin": "B0000045",
@@ -717,7 +717,7 @@
         "image_placeholder_color": "#48DBFB",
         "description_short": "Liquid Retina XDR display, ProRes video, Apple Pencil hover, Wi-Fi 6E, 10-hour battery life.",
         "product_id": "B0000045",
-        "image_url": "https://image.unsplash.com/800x600/?Apple%20iPad%20Pro%2012.9-Inch%20M2%20Chip%20Wi-Fi%20256GB%206th%20Generation"
+        "image_url": "assets/P45.jpg"
     },
     {
         "asin": "B0000046",
@@ -733,7 +733,7 @@
         "image_placeholder_color": "#48DBFB",
         "description_short": "12th Gen Intel Core i5, 8GB RAM, Windows 11 Home, 13-inch PixelSense touchscreen, up to 15.5-hour battery.",
         "product_id": "B0000046",
-        "image_url": "https://image.unsplash.com/800x600/?Microsoft%20Surface%20Pro%209%2013-Inch%20Intel%20Core%20i5%20256GB%20Tablet"
+        "image_url": "assets/P46.jpg"
     },
     {
         "asin": "B0000047",
@@ -749,7 +749,7 @@
         "image_placeholder_color": "#FF9F43",
         "description_short": "13 cooking functions, Super Convection, Element IQ system, interior oven light, non-stick coating.",
         "product_id": "B0000047",
-        "image_url": "https://image.unsplash.com/800x600/?Breville%20Smart%20Oven%20Air%20Fryer%2022L%20Compact%20Convection%20Oven"
+        "image_url": "assets/P47.jpg"
     },
     {
         "asin": "B0000048",
@@ -765,7 +765,7 @@
         "image_placeholder_color": "#FF9F43",
         "description_short": "300 ppi glare-free display, included Premium Pen, write in books and documents, 12-week battery.",
         "product_id": "B0000048",
-        "image_url": "https://image.unsplash.com/800x600/?Amazon%20Kindle%20Scribe%2010.2-Inch%20E%20Ink%20Display%2016GB%20with%20Pen"
+        "image_url": "assets/P48.jpg"
     },
     {
         "asin": "B0000049",
@@ -781,7 +781,7 @@
         "image_placeholder_color": "#FF6B6B",
         "description_short": "3 heat settings: low, high, and warm, locking lid for easy transport, fits up to 7-pound roast.",
         "product_id": "B0000049",
-        "image_url": "https://image.unsplash.com/800x600/?Crock-Pot%207-Quart%20Oval%20Manual%20Slow%20Cooker%20Stainless%20Steel"
+        "image_url": "assets/P49.jpg"
     },
     {
         "asin": "B0000050",
@@ -797,7 +797,7 @@
         "image_placeholder_color": "#5F27CD",
         "description_short": "World's smallest and lightest premium noise cancelling earbuds, 360 Reality Audio, LDAC codec support.",
         "product_id": "B0000050",
-        "image_url": "https://image.unsplash.com/800x600/?Sony%20WF-1000XM5%20True%20Wireless%20Noise%20Cancelling%20Earbuds"
+        "image_url": "assets/P50.jpg"
     },
     {
         "asin": "B0000051",
@@ -813,7 +813,7 @@
         "is_bestseller": true,
         "image_placeholder_color": "#FF6B9D",
         "description_short": "Concentrated 1.5% pure hyaluronic acid serum. Visibly plumps skin and reduces wrinkles.",
-        "image_url": "https://image.unsplash.com/800x600/?L%27Oreal%20Paris%20Revitalift%201.5%25%20Pure%20Hyaluronic%20Acid%20Serum"
+        "image_url": "assets/P51.jpg"
     },
     {
         "asin": "B0000052",
@@ -829,7 +829,7 @@
         "is_bestseller": true,
         "image_placeholder_color": "#74B9FF",
         "description_short": "Lightweight water gel face moisturizer with hyaluronic acid for lasting hydration.",
-        "image_url": "https://image.unsplash.com/800x600/?Neutrogena%20Hydro%20Boost%20Water%20Gel%20Face%20Moisturizer"
+        "image_url": "assets/P52.jpg"
     },
     {
         "asin": "B0000053",
@@ -845,7 +845,7 @@
         "is_bestseller": true,
         "image_placeholder_color": "#A29BFE",
         "description_short": "Non-greasy daily moisturizer with ceramides and hyaluronic acid for 24-hour hydration.",
-        "image_url": "https://image.unsplash.com/800x600/?CeraVe%20Daily%20Moisturizing%20Lotion%20for%20Normal%20to%20Dry%20Skin"
+        "image_url": "assets/P53.jpg"
     },
     {
         "asin": "B0000054",
@@ -861,7 +861,7 @@
         "is_bestseller": false,
         "image_placeholder_color": "#FD79A8",
         "description_short": "Sticky gel-based primer grips makeup for long-lasting wear with hyaluronic acid.",
-        "image_url": "https://image.unsplash.com/800x600/?ELF%20Cosmetics%20Power%20Grip%20Primer%20Gel-Based%20Face%20Primer"
+        "image_url": "assets/P54.jpg"
     },
     {
         "asin": "B0000055",
@@ -877,7 +877,7 @@
         "is_bestseller": true,
         "image_placeholder_color": "#FDCB6E",
         "description_short": "Renewing shampoo infused with argan oil to tame frizz and add brilliant shine.",
-        "image_url": "https://image.unsplash.com/800x600/?OGX%20Argan%20Oil%20of%20Morocco%20Shampoo%20for%20Frizzy%20Hair"
+        "image_url": "assets/P55.jpg"
     },
     {
         "asin": "B0000056",
@@ -893,7 +893,7 @@
         "is_bestseller": false,
         "image_placeholder_color": "#2D3436",
         "description_short": "Buildable lengthening mascara with flexible fiber bristle brush for sky-high lashes.",
-        "image_url": "https://image.unsplash.com/800x600/?Maybelline%20New%20York%20Sky%20High%20Washable%20Mascara"
+        "image_url": "assets/P56.jpg"
     },
     {
         "asin": "B0000057",
@@ -909,7 +909,7 @@
         "is_bestseller": true,
         "image_placeholder_color": "#0984E3",
         "description_short": "Classic straight leg jeans with regular fit through thigh and knee. Iconic 505 cut.",
-        "image_url": "https://image.unsplash.com/800x600/?Levi%20Strauss%20505%20Regular%20Fit%20Jeans"
+        "image_url": "assets/P57.jpg"
     },
     {
         "asin": "B0000058",
@@ -925,7 +925,7 @@
         "is_bestseller": true,
         "image_placeholder_color": "#DFE6E9",
         "description_short": "Iconic low-cut basketball shoe with perforated leather upper and padded collar.",
-        "image_url": "https://image.unsplash.com/800x600/?Nike%20Air%20Force%201%20Low%20Top%20Sneaker"
+        "image_url": "assets/P58.jpg"
     },
     {
         "asin": "B0000059",
@@ -941,7 +941,7 @@
         "is_bestseller": true,
         "image_placeholder_color": "#636E72",
         "description_short": "Fleece hoodie with reduced pilling, moisture management and signature C logo.",
-        "image_url": "https://image.unsplash.com/800x600/?Champion%20Mens%20Powerblend%20Fleece%20Hoodie%20Sweatshirt"
+        "image_url": "assets/P59.jpg"
     },
     {
         "asin": "B0000060",
@@ -957,7 +957,7 @@
         "is_bestseller": true,
         "image_placeholder_color": "#00B894",
         "description_short": "Running shoes with BOOST midsole for incredible energy return and Primeknit upper.",
-        "image_url": "https://image.unsplash.com/800x600/?Adidas%20Ultraboost%2022%20Running%20Shoes%20Women"
+        "image_url": "assets/P60.jpg"
     },
     {
         "asin": "B0000061",
@@ -973,7 +973,7 @@
         "is_bestseller": false,
         "image_placeholder_color": "#B2BEC3",
         "description_short": "Made with recycled polyester from plastic bottles, EcoSmart technology.",
-        "image_url": "https://image.unsplash.com/800x600/?Hanes%20EcoSmart%20Pullover%20Hoodie%20Sweatshirt"
+        "image_url": "assets/P61.jpg"
     },
     {
         "asin": "B0000062",
@@ -989,6 +989,6 @@
         "is_bestseller": true,
         "image_placeholder_color": "#E17055",
         "description_short": "Classic sneaker with canvas upper, rubber toe cap and vulcanized rubber sole.",
-        "image_url": "https://image.unsplash.com/800x600/?Converse%20Chuck%20Taylor%20All%20Star%20Low%20Top%20Sneaker"
+        "image_url": "assets/P62.jpg"
     }
 ]
