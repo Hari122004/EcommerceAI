@@ -218,9 +218,9 @@ st.markdown(f'<p style="font-size:14px;color:{p["text_secondary"]};margin-bottom
             unsafe_allow_html=True)
 
 team = [
-  {"name": "Ajay kumar ", "role": "Team Lead & Full-Stack AI", "init": "AK", "color": "#6366f1"},
-  {"name": "Dhanush", "role": "ML Engineer", "init": "DH", "color": "#8b5cf6"},
-  {"name": "Harish ", "role": "Data Scientist", "init": "HA", "color": "#06B6D4"},
+  {"name": "Harish", "role": "Team Lead & Data Scientist", "init": "HA", "color": "#6366f1"},
+  {"name": "Ajay kumar", "role": "ML Engineer", "init": "AK", "color": "#8b5cf6"},
+  {"name": "Dhanush", "role": "Full-Stack Developer", "init": "DH", "color": "#06B6D4"},
   
 ]
 
