@@ -1,6 +1,6 @@
 """
 models/mf_gpu.py
-Neural GPU-Accelerated Biased Matrix Factorization for IntelliRec
+Neural GPU-Accelerated Biased Matrix Factorization for SmartCart
 -----------------------------------------------------------------
 Architecture: GMF dot-product path + non-linear MLP path (NeuMF-style)
 Training:     All data pre-loaded to GPU VRAM -- eliminates CPU starvation

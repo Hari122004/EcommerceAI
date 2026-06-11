@@ -1,10 +1,10 @@
 import sys
 
 def patch_signup():
-    with open('d:/Desktop/IntelliRec/auth/login.py', 'r', encoding='utf-8') as f:
+    with open('d:/Desktop/SmartCart/auth/login.py', 'r', encoding='utf-8') as f:
         login_lines = f.readlines()
         
-    with open('d:/Desktop/IntelliRec/auth/signup.py', 'r', encoding='utf-8') as f:
+    with open('d:/Desktop/SmartCart/auth/signup.py', 'r', encoding='utf-8') as f:
         signup_lines = f.readlines()
 
     # In login.py, _CSS starts at line 8
@@ -23,11 +23,11 @@ def patch_signup():
     new_signup_lines = signup_lines[:7] + css_right_content + signup_lines[376:]
     
     # Write it back temporarily
-    with open('d:/Desktop/IntelliRec/auth/signup.py', 'w', encoding='utf-8') as f:
+    with open('d:/Desktop/SmartCart/auth/signup.py', 'w', encoding='utf-8') as f:
         f.writelines(new_signup_lines)
 
     # Now let's handle the string replacements using read/write
-    with open('d:/Desktop/IntelliRec/auth/signup.py', 'r', encoding='utf-8') as f:
+    with open('d:/Desktop/SmartCart/auth/signup.py', 'r', encoding='utf-8') as f:
         content = f.read()
         
     content = content.replace('def render_signup():\n    init_session()\n    st.markdown(_INTER', 
@@ -46,7 +46,7 @@ def patch_signup():
 
     content = content.replace('"G  Sign up with Google"', '"Sign up with Google"')
     
-    with open('d:/Desktop/IntelliRec/auth/signup.py', 'w', encoding='utf-8') as f:
+    with open('d:/Desktop/SmartCart/auth/signup.py', 'w', encoding='utf-8') as f:
         f.write(content)
         
     print('Patched signup.py successfully.')

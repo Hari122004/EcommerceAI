@@ -1,5 +1,5 @@
 """
-IntelliRec Top Bar Component v6.0 — Glass icon row, no animation.
+SmartCart Top Bar Component v6.0 — Glass icon row, no animation.
 Button styling is owned by utils/theme.py (avatar circle keyed on
 "topbar_avatar_btn"). This module only renders the buttons + dropdowns.
 """

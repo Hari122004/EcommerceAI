@@ -1,4 +1,4 @@
-"""Pre-run checks for IntelliRec 4-category pipeline."""
+"""Pre-run checks for SmartCart 4-category pipeline."""
 import os, sys
 
 sm = 'saved_models'

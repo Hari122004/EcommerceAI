@@ -93,7 +93,7 @@ def main() -> int:
     print(f"  OK — {len(df2):,} rows round-tripped cleanly")
     print("\nDONE. Upload this file to HuggingFace:")
     print(f"   {OUT_PATH}")
-    print("   Repo: Hemanth1429/intellirec-recommendation-model")
+    print("   Repo: Hemanth1429/smartcart-recommendation-model")
     print("   Filename on HF: products_df.parquet")
     return 0
 

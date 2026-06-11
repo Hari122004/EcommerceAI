@@ -439,7 +439,7 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] span {{
         st.markdown(f"""
 <div style="text-align:center;padding:6px 0 10px;
             font-size:10px;color:{_p['text_muted']};letter-spacing:0.3px;">
-  Powered by AI &middot; IntelliRec v2.0
+    Powered by AI &middot; SmartCart v2.0
 </div>""", unsafe_allow_html=True)
 
     apply_sidebar_visibility(st.session_state.get('sidebar_collapsed', False))
