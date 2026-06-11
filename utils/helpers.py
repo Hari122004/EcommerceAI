@@ -6,7 +6,9 @@ treating indented lines inside the HTML as code blocks.
 import base64
 import mimetypes
 import os
+import re
 from pathlib import Path
+from urllib.parse import quote_plus
 
 import streamlit as st
 
@@ -223,6 +225,13 @@ def get_product_image_url(prod: dict) -> str:
         val = prod.get(key)
         if isinstance(val, str) and val.strip():
             return val.strip()
+
+    title = str(prod.get("title") or prod.get("name") or prod.get("category") or "product").strip()
+    if title:
+        query = re.sub(r"[^a-zA-Z0-9 ]+", " ", title).strip()
+        if query:
+            return f"https://images.unsplash.com/640x480/?{quote_plus(query)}"
+
     return ""
 
 
