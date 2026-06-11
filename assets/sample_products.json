@@ -13,7 +13,7 @@
         "image_placeholder_color": "#48DBFB",
         "description_short": "Industry-leading noise cancellation with 30-hour battery life and multipoint connection.",
         "product_id": "B0000001",
-        "image_url": "assets/p1.jpg"
+        "image_url": "assets\\p1.jpg"
     },
     {
         "asin": "B0000002",
@@ -29,7 +29,7 @@
         "image_placeholder_color": "#FF6B6B",
         "description_short": "Pressure cooker, slow cooker, rice cooker, steamer, sautÃ©, yogurt maker and warmer in one.",
         "product_id": "B0000002",
-        "image_url": "assets/P2.jpg"
+        "image_url": "assets\\p2.jpg"
     },
     {
         "asin": "B0000003",
