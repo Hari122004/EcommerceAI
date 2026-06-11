@@ -8,6 +8,7 @@ import mimetypes
 import os
 import re
 from pathlib import Path
+from typing import Any, Callable
 from urllib.parse import quote_plus
 
 import streamlit as st
@@ -353,7 +354,7 @@ try:
     _dialog_decorator = st.dialog("Product Details", width="small")
 except Exception:
     # Fallback: identity decorator (dialog won't open, but nothing crashes)
-    def _dialog_decorator(fn):
+    def _dialog_decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
         return fn
 
 @_dialog_decorator
@@ -500,7 +501,8 @@ def _show_product_detail_dialog(product: dict):
                 try:
                     from database.db_operations import add_to_wishlist
                     _dlg_price = float(product.get("price") or 0.0)
-                    add_to_wishlist(st.session_state.get("user_id"), asin, title, _dlg_price, category)
+                    _user_id = str(st.session_state.get("user_id") or "guest")
+                    add_to_wishlist(_user_id, asin, title, _dlg_price, category)
                     _wl = st.session_state.get("wishlist_ids") or set()
                     _wl.add(asin)
                     st.session_state["wishlist_ids"] = _wl
