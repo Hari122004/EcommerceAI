@@ -24,8 +24,8 @@ STYLES = [
 
 _OB_CSS = """
 <style>
-html,body,[data-testid="stAppViewContainer"],[data-testid="stAppViewContainer"]>.main{
-    background:#fff!important;font-family:'Inter',sans-serif!important;
+html,body,[data-testid="stAppViewContainer"],[data-testid="stAppViewContainer"]>.main,[data-testid="stMainBlockContainer"],.main .block-container{
+    background:#D7EEFF!important;font-family:'Inter',sans-serif!important;
 }
 section[data-testid="stSidebar"]{display:none!important;}
 [data-testid="collapsedControl"]{display:none!important;}
