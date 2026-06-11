@@ -34,18 +34,18 @@
   --info-light:     #EFF6FF;
 
   /* Light Mode Surfaces */
-  --bg-page:        #F0F2FF;
-  --bg-surface:     rgba(255,255,255,0.82);
-  --bg-surface-hover: rgba(255,255,255,0.88);
-  --bg-card:        rgba(255,255,255,0.88);
-  --bg-sidebar:     rgba(255,255,255,0.85);
-  --bg-topbar:      rgba(255,255,255,0.75);
+  --bg-page:        #D7EEFF;
+  --bg-surface:     rgba(255,255,255,0.90);
+  --bg-surface-hover: rgba(255,255,255,0.95);
+  --bg-card:        rgba(255,255,255,0.92);
+  --bg-sidebar:     rgba(255,255,255,0.90);
+  --bg-topbar:      rgba(255,255,255,0.80);
 
   /* Legacy surface aliases */
-  --bg:             #F0F2FF;
+  --bg:             #D7EEFF;
   --surface:        #FFFFFF;
-  --surface-2:      #F9FAFB;
-  --surface-3:      #F3F4F6;
+  --surface-2:      #F5F9FF;
+  --surface-3:      #EBF4FF;
 
   /* Text */
   --text-primary:   #0F0F1A;
@@ -362,9 +362,12 @@ div[data-testid="stDecoration"]            { display: none !important; }
 }
 
 /* ── Page Background ──────────────────────────────────────────────────────── */
+html, body,
+.stApp,
 [data-testid="stAppViewContainer"],
 [data-testid="stAppViewContainer"] > .main,
-.stApp {
+[data-testid="stMainBlockContainer"],
+.main .block-container {
   background: var(--bg-page) !important;
 }
 

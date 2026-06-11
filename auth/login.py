@@ -14,14 +14,14 @@ _FONT_LINK = (
 # ── Compact CSS ────────────────────────────────────────────────────────────────
 _CSS = """<style>
 /* ── Force light page background (overrides config.toml base=dark) ── */
-html,body{background:#f4f6fb!important}
-.stApp,[data-testid="stAppViewContainer"]{background:#f4f6fb!important}
+html,body{background:#D7EEFF!important}
+.stApp,[data-testid="stAppViewContainer"],[data-testid="stAppViewContainer"]>.main,[data-testid="stMainBlockContainer"],.main .block-container{background:#D7EEFF!important}
 /* ── Base reset ── */
 *,*::before,*::after{box-sizing:border-box}
 html,body,[data-testid="stAppViewContainer"],[data-testid="stAppViewContainer"]>.main{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif!important}
 [data-testid="stAppViewContainer"]>.main{
-  background:linear-gradient(135deg,#EEF2FF 0%,#F0FDFF 50%,#F5F3FF 100%)!important}
+  background:linear-gradient(135deg,#DFF5FF 0%,#E8F8FF 50%,#F2FBFF 100%)!important}
 
 /* ── Left column glass ── */
 [data-testid="column"]:nth-of-type(1){
@@ -571,7 +571,9 @@ def render_login():
                         elif msg == "WRONG_PASSWORD":
                             st.markdown(
                                 _err('Incorrect password. If you signed up with Google, '
-                                     'use the <strong>Continue with Google</strong> button below.'),
+                                     'use the <strong>Continue with Google</strong> button below. '
+                                     'Otherwise, <a href="?forgot=1" style="color:#6366f1;'
+                                     'font-weight:700;text-decoration:none;">reset your password</a>.'),
                                 unsafe_allow_html=True)
                         else:
                             st.markdown(_err(f"Sign-in failed: {msg}"), unsafe_allow_html=True)

@@ -93,14 +93,14 @@ def init_session():
 def signup_user(email: str, password: str, full_name: str):
     try:
         username = full_name.strip().lower().replace(" ", "_")
+        email = email.strip().lower()
         # Layer 1: pre-check profiles table before hitting Supabase sign_up
         try:
-            existing = supabase.table('profiles').select('id').eq('email', email.strip()).execute()
+            existing = supabase.table('profiles').select('id').eq('email', email).execute()
             if existing.data:
                 return False, "An account with this email already exists. Please sign in instead."
         except Exception:
             pass  # If check fails, let Supabase handle it
-        email = email.strip()
         response = supabase.auth.sign_up({
             "email": email,
             "password": password,
@@ -146,6 +146,7 @@ def signup_user(email: str, password: str, full_name: str):
 
 
 def login_user(email: str, password: str):
+    email = email.strip().lower()
     try:
         response = supabase.auth.sign_in_with_password({
             "email": email,
@@ -216,16 +217,11 @@ def login_user(email: str, password: str):
         error = str(e).lower()
         if "email not confirmed" in error or "not confirmed" in error:
             return False, "EMAIL_NOT_CONFIRMED"
-        if "invalid login" in error or "invalid credentials" in error:
-            try:
-                chk = supabase.table('profiles').select('id').ilike('email', email.strip()).execute()
-                if not chk.data:
-                    return False, "NO_ACCOUNT"
-                # Account exists but password is wrong (could be a Google-only account)
-                return False, "WRONG_PASSWORD"
-            except Exception:
-                pass
-            return False, "Incorrect email or password. Please try again."
+        if ("invalid login" in error or "invalid credentials" in error or
+                "invalid password" in error):
+            return False, "WRONG_PASSWORD"
+        if "user not found" in error or "unable to find" in error or "no user" in error:
+            return False, "NO_ACCOUNT"
         if "too many requests" in error:
             return False, "Too many attempts. Please wait a few minutes and try again."
         return False, f"Login failed: {str(e)}"

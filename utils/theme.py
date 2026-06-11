@@ -11,7 +11,7 @@ import streamlit as st
 def get_palette(theme: str) -> dict:
     if theme == 'light':
         return {
-            'page_bg': '#f4f6fb',
+            'page_bg': '#D7EEFF',
             'glass_bg':          'rgba(255, 255, 255, 0.62)',
             'glass_bg_strong':   'rgba(255, 255, 255, 0.82)',
             'glass_bg_subtle':   'rgba(255, 255, 255, 0.38)',
@@ -177,8 +177,8 @@ def inject_global_css(p: dict = None):
   section[data-testid="stSidebar"],[data-testid="stSidebarContent"]{background-color:#0d0d1f !important;}
 }
 @media (prefers-color-scheme: light) {
-  .stApp,[data-testid="stAppViewContainer"],.main .block-container{background-color:#f4f6fb !important;}
-  section[data-testid="stSidebar"],[data-testid="stSidebarContent"]{background-color:#ffffff !important;}
+  html, body, .stApp,[data-testid="stAppViewContainer"],.main .block-container{background-color:#D7EEFF !important;}
+  section[data-testid="stSidebar"],[data-testid="stSidebarContent"]{background-color:#E6F4FF !important;}
 }
 """
     else:
@@ -229,10 +229,12 @@ div[data-testid="stDecoration"]{{display:none !important;}}
 /* ============================================================
    PAGE BACKGROUND
 ============================================================ */
+html, body,
 .stApp,
 [data-testid="stAppViewContainer"],
 [data-testid="stMain"],
-[data-testid="stMainBlockContainer"]{{background-color:{p['page_bg']} !important;}}
+[data-testid="stMainBlockContainer"],
+.main .block-container{{background:{p['page_bg']} !important;}}
 /* ── Root fix: .stApp is where Streamlit injects toolbar offset ── */
 .stApp {{
     padding-top: 0 !important;
